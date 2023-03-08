@@ -1,0 +1,59 @@
+.virtual-grid-wrap {
+    position: relative;
+}
+
+.virtual-grid-empty {
+    position: absolute;
+    display: flex;
+    flex-wrap: nowrap;
+    align-content: center;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.virtial-grid-item {
+    transition: background .3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-content: center;
+    flex-wrap: nowrap;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+.fixed-virtial-grid-row {
+    pointer-events: none;
+    position: sticky;
+    left: 0;
+    display: flex;
+    flex-wrap: nowrap;
+    align-content: center;
+    justify-content: space-between;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.fixed-virtial-grid-row-left-columns,
+.fixed-virtial-grid-row-right-columns {
+    pointer-events: all;
+    display: flex;
+    flex-wrap: nowrap;
+    align-content: center;
+    align-items: center;
+}
+
+.ant-table.ant-table-bordered .virtial-grid-item {
+    border-right: 1px solid #f0f0f0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.ant-table.ant-table-bordered .fixed-virtial-grid-row-right-columns .virtial-grid-item {
+    border-left: 1px solid #f0f0f0;
+    border-right: 0;
+}
+
+.ignore-mouse {
+    pointer-events: none;
+}
