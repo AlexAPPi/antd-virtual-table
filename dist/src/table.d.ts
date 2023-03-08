@@ -9,6 +9,7 @@ export interface VirtualTableProps<RecordType extends Record<any, any>> extends 
     scroll: ScrollConfig;
     columns: ColumnsType<RecordType>;
     rowHeight: number;
+    rerenderFixedColumnOnHorizontalScroll?: boolean;
     onScroll?: OnScrollCallback;
 }
 export declare function VirtualTable<RecordType extends Record<any, any>>(props: VirtualTableProps<RecordType>): JSX.Element;

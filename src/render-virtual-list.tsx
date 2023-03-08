@@ -26,6 +26,7 @@ export interface IRenderVirtualListProps<RecordType extends Record<any, any> = a
     connectObject: InfoRef,
     normalizeColumns: ColumnsType<RecordType>,
     normalizeIndexes: number[],
+    rerenderFixedColumnOnHorizontalScroll?: boolean,
     rowHeightGetter: (index: number) => number,
     getColumn: (index: number) => ColumnType<RecordType>,
     cellRender: (props: GridChildComponentProps<RecordType>) => React.ReactElement,
@@ -41,6 +42,7 @@ export const RenderVirtualList = <RecordType extends Record<any, any>, >({
     connectObject,
     normalizeColumns,
     normalizeIndexes,
+    rerenderFixedColumnOnHorizontalScroll,
     getColumn,
     rowHeightGetter,
     cellRender,
@@ -106,6 +108,7 @@ export const RenderVirtualList = <RecordType extends Record<any, any>, >({
                     columnWidth={columnWidthGetter}
                     itemData={rawData}
                     columnGetter={getColumn}
+                    rerenderFixedColumnOnHorizontalScroll={rerenderFixedColumnOnHorizontalScroll}
                     onScroll={(props) => {
                         onScroll({ scrollLeft: props.scrollLeft });
                         onScrollTable && onScrollTable(props);

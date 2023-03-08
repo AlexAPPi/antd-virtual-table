@@ -15,12 +15,13 @@ export interface VirtualTableProps<RecordType extends Record<any, any>> extends 
     scroll: ScrollConfig,
     columns: ColumnsType<RecordType>,
     rowHeight: number,
+    rerenderFixedColumnOnHorizontalScroll?: boolean,
     onScroll?: OnScrollCallback
 }
 
 export function VirtualTable<RecordType extends Record<any, any>>(props: VirtualTableProps<RecordType>) {
 
-    const { className, columns, rowHeight, scroll, gridRef, outerGridRef, onScroll, onChange } = props;
+    const { className, columns, rowHeight, scroll, gridRef, outerGridRef, onScroll, onChange, rerenderFixedColumnOnHorizontalScroll } = props;
     
     const tableRef = useRef<HTMLElement | null>(null);
 
@@ -185,6 +186,7 @@ export function VirtualTable<RecordType extends Record<any, any>>(props: Virtual
         connectObject,
         normalizeColumns,
         normalizeIndexes,
+        rerenderFixedColumnOnHorizontalScroll,
         getColumn,
         rowHeightGetter,
         cellRender,

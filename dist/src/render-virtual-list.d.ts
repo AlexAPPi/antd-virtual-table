@@ -21,10 +21,11 @@ export interface IRenderVirtualListProps<RecordType extends Record<any, any> = a
     connectObject: InfoRef;
     normalizeColumns: ColumnsType<RecordType>;
     normalizeIndexes: number[];
+    rerenderFixedColumnOnHorizontalScroll?: boolean;
     rowHeightGetter: (index: number) => number;
     getColumn: (index: number) => ColumnType<RecordType>;
     cellRender: (props: GridChildComponentProps<RecordType>) => React.ReactElement;
     onScroll?: OnScrollCallback;
 }
-export declare const RenderVirtualList: <RecordType extends Record<any, any>>({ scroll, gridRef, outerGridRef, rowHeight, columns, connectObject, normalizeColumns, normalizeIndexes, getColumn, rowHeightGetter, cellRender, onScroll: onScrollTable }: IRenderVirtualListProps<RecordType>) => (rawData: readonly RecordType[], info: Info) => JSX.Element;
+export declare const RenderVirtualList: <RecordType extends Record<any, any>>({ scroll, gridRef, outerGridRef, rowHeight, columns, connectObject, normalizeColumns, normalizeIndexes, rerenderFixedColumnOnHorizontalScroll, getColumn, rowHeightGetter, cellRender, onScroll: onScrollTable }: IRenderVirtualListProps<RecordType>) => (rawData: readonly RecordType[], info: Info) => JSX.Element;
 //# sourceMappingURL=render-virtual-list.d.ts.map
