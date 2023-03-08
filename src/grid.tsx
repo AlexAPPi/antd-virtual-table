@@ -641,8 +641,8 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
             outerElementType || outerTagName || 'div',
             {
                 className: classNames(className, {
-                    hasFixedLeftColumnClassName: hasFixedLeftColumn,
-                    hasFixedRightColumnClassName: hasFixedRightColumn
+                    [hasFixedLeftColumnClassName]: hasFixedLeftColumn,
+                    [hasFixedRightColumnClassName]: hasFixedRightColumn
                 }),
                 onScroll: this._onScroll,
                 ref: this._outerRefSetter,
