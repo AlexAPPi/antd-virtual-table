@@ -263,6 +263,12 @@ const getColumnWidth = <TRecord extends Record<any, any> = any,>(
     instanceProps: InstanceProps
 ): number => instanceProps.columnMetadataMap[index].size;
 
+const getColumnWidthOrCalculate = <TRecord extends Record<any, any> = any,>(
+    props: Grid<TRecord>['props'],
+    index: number,
+    instanceProps: InstanceProps
+): number => getItemMetadata('row', props, index, instanceProps).size;
+
 const fixedRowClassName = "fixed-virtial-grid-row";
 const fixedRowLeftColumnsClassName = "fixed-virtial-grid-row-left-columns";
 const fixedRowRightColumnsClassName = "fixed-virtial-grid-row-right-columns";
@@ -363,7 +369,7 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
 
             if (column.fixed === 'left' || column.fixed === true) {
                 this._lastLeftFixedColumn++;
-                this._leftFixedColumnsWidth += getColumnWidth(this.props, columnIndex, this._instanceProps);
+                this._leftFixedColumnsWidth += getColumnWidthOrCalculate(this.props, columnIndex, this._instanceProps);
                 continue;
             }
 
@@ -376,7 +382,7 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
 
             if (column.fixed === 'right') {
                 this._firstRightFixedColumn--;
-                this._rightFixedColumnsWidth += getColumnWidth(this.props, columnIndex, this._instanceProps);
+                this._rightFixedColumnsWidth += getColumnWidthOrCalculate(this.props, columnIndex, this._instanceProps);
                 continue;
             }
 
