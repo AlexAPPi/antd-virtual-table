@@ -596,10 +596,15 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
                 rowIndex++
             ) {
                 for (
-                    let columnIndex = this._firstUnFixedColumn;
-                    columnIndex <= this._firstRightFixedColumn;
+                    let columnIndex = columnStartIndex;
+                    columnIndex <= columnStopIndex;
                     columnIndex++
                 ) {
+                    if(columnIndex < this._firstUnFixedColumn
+                    || columnIndex > this._firstRightFixedColumn - 1) {
+                        continue;
+                    }
+
                     items.push(
                         createElement(children, {
                             columnIndex,
