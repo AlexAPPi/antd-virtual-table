@@ -610,7 +610,7 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
                             columnIndex,
                             data: itemData,
                             isScrolling: useIsScrolling ? isScrolling : undefined,
-                            key: itemKey({ columnIndex, data: itemData!, rowIndex }),
+                            key: itemKey({ columnIndex, data: itemData, rowIndex }),
                             rowIndex,
                             style: this._getItemStyle(rowIndex, columnIndex),
                         })
