@@ -4,7 +4,6 @@ import { Align, VariableSizeGrid, VariableSizeGridProps, GridOnScrollProps } fro
 import { ColumnType } from "./interfaces";
 import { getScrollbarSize } from "./domHelpers";
 import { classNames } from "./helpers";
-import { number } from "prop-types";
 
 type ScrollEvent = SyntheticEvent<HTMLDivElement>;
 type columnGetter<TRecord extends Record<any, any> = any> = (index: number) => ColumnType<TRecord>;
@@ -270,7 +269,8 @@ const fixedRowRightColumnsClassName = "fixed-virtial-grid-row-right-columns";
 const hasFixedLeftColumnClassName = "has-fixed-left-column";
 const hasFixedRightColumnClassName = "has-fixed-right-column";
 
-export type OnScrollCallback = (props: GridOnScrollProps) => void;
+export type OnScrollProps = GridOnScrollProps;
+export type OnScrollCallback = (props: OnScrollProps) => void;
 
 export interface IGridState {
     isScrolling: boolean,

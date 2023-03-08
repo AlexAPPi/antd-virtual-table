@@ -2,7 +2,8 @@ import React from "react";
 import { Align, VariableSizeGrid, VariableSizeGridProps, GridOnScrollProps } from "react-window";
 import { ColumnType } from "./interfaces";
 type columnGetter<TRecord extends Record<any, any> = any> = (index: number) => ColumnType<TRecord>;
-export type OnScrollCallback = (props: GridOnScrollProps) => void;
+export type OnScrollProps = GridOnScrollProps;
+export type OnScrollCallback = (props: OnScrollProps) => void;
 export interface IGridState {
     isScrolling: boolean;
     scrollTop: number;
