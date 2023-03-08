@@ -13,3 +13,4 @@ export interface VirtualTableProps<RecordType extends Record<any, any>> extends 
 }
 export declare function VirtualTable<RecordType extends Record<any, any>>(props: VirtualTableProps<RecordType>): JSX.Element;
 export default VirtualTable;
+//# sourceMappingURL=table.d.ts.map

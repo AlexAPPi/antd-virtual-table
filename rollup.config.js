@@ -5,7 +5,6 @@ import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import typescript from "@rollup/plugin-typescript";
 import del from "rollup-plugin-delete";
-import autoprefixer from 'autoprefixer';
 import importCss from 'rollup-plugin-import-css';
 
 const require = createRequire(import.meta.url);
@@ -28,15 +27,14 @@ export default [
             peerDepsExternal(),
             resolve(),
             commonjs(),
+            //sourcemaps(),
             typescript({ tsconfig: "./tsconfig.json" }),
             importCss({
-                plugins: [autoprefixer()],
-                sourceMap: true,
                 extract: true,
-                minimize: true
+                minify: true
             }),
             terser(),
         ],
-        external: ["react", "react-dom", "styled-components"]
+        external: ["react", "react-dom", "antd", "styled-components"]
     },
 ];

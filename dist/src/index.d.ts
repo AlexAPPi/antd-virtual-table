@@ -4,3 +4,4 @@ import { ColumnType, ColumnsType, ScrollViewSize, ScrollConfig } from './interfa
 export type { VirtualTableProps, IGridProps, IGridState, ColumnType, ColumnsType, ScrollViewSize, ScrollConfig };
 export { VirtualTable, Grid };
 export default VirtualTable;
+//# sourceMappingURL=index.d.ts.map

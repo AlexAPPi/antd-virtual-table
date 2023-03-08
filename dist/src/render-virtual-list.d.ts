@@ -27,3 +27,4 @@ export interface IRenderVirtualListProps<RecordType extends Record<any, any> = a
     onScroll?: OnScrollCallback;
 }
 export declare const RenderVirtualList: <RecordType extends Record<any, any>>({ scroll, gridRef, outerGridRef, rowHeight, columns, connectObject, normalizeColumns, normalizeIndexes, getColumn, rowHeightGetter, cellRender, onScroll: onScrollTable }: IRenderVirtualListProps<RecordType>) => (rawData: readonly RecordType[], info: Info) => JSX.Element;
+//# sourceMappingURL=render-virtual-list.d.ts.map

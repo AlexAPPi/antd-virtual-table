@@ -22,3 +22,4 @@ export interface VirtualTableItemProps<RecordType extends Record<any, any> = any
     originalColumnIndex: number;
     column: ColumnType<RecordType>;
 }
+//# sourceMappingURL=interfaces.d.ts.map

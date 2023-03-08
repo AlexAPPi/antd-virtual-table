@@ -25,6 +25,7 @@
     "outDir": "dist",
     "declaration": true,
     "declarationDir": "src",
+    "declarationMap": true,
     "sourceMap": true,
     "sourceRoot": "src"
   },

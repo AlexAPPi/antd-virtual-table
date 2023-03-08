@@ -63,3 +63,4 @@ export declare class Grid<RecordType extends Record<any, any> = any> extends Var
     componentDidUpdate(prevProps: IGridProps<RecordType>, prevState: IGridState, snapshot: any): void;
 }
 export {};
+//# sourceMappingURL=grid.d.ts.map
