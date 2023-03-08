@@ -52,7 +52,8 @@ export declare class Grid<RecordType extends Record<any, any> = any> extends Var
     private _onScroll;
     private _leftFixedColumnsWidth;
     private _rightFixedColumnsWidth;
-    private _lastLeftFixedColumn;
+    private _firstUnFixedColumn;
+    /** может быть равен <b>props.columnCount</b>, когда нет фиксированных колонок справо */
     private _firstRightFixedColumn;
     private _lastFixedRenderedContent;
     private _lastFixedRenderedRowStartIndex;

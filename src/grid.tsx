@@ -337,8 +337,12 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
 
     private _leftFixedColumnsWidth = 0;
     private _rightFixedColumnsWidth = 0;
-    private _lastLeftFixedColumn = 0;
+
+    private _firstUnFixedColumn = 0;
+
+    /** может быть равен <b>props.columnCount</b>, когда нет фиксированных колонок справо */
     private _firstRightFixedColumn = 0;
+
     private _lastFixedRenderedContent: React.ReactElement[] | undefined;
     private _lastFixedRenderedRowStartIndex: number | undefined;
     private _lastFixedRenderedRowStopIndex: number | undefined
@@ -352,24 +356,21 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
 
         const { columnCount, columnGetter } = this.props;
 
-        const columnStartIndex = 0;
-        const columnStopIndex = columnCount;
-
-        this._lastLeftFixedColumn = 0;
-        this._firstRightFixedColumn = columnCount - 1;
+        this._firstUnFixedColumn = 0;
+        this._firstRightFixedColumn = columnCount;
         this._leftFixedColumnsWidth = 0;
         this._rightFixedColumnsWidth = 0;
 
         this._lastFixedRenderedContent = undefined;
         this._lastFixedRenderedRowStartIndex = undefined;
         this._lastFixedRenderedRowStopIndex = undefined;
-        
-        for (let columnIndex = columnStartIndex; columnIndex < columnStopIndex; columnIndex++) {
+
+        for (let columnIndex = 0; columnIndex < columnCount; columnIndex++) {
 
             let column = columnGetter(columnIndex);
 
             if (column.fixed === 'left' || column.fixed === true) {
-                this._lastLeftFixedColumn++;
+                this._firstUnFixedColumn++;
                 this._leftFixedColumnsWidth += getColumnWidthOrCalculate(this.props, columnIndex, this._instanceProps);
                 continue;
             }
@@ -377,7 +378,7 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
             break;
         }
 
-        for (let columnIndex = columnStopIndex - 1; columnIndex > -1; columnIndex--) {
+        for (let columnIndex = columnCount - 1; columnIndex > -1; columnIndex--) {
 
             let column = columnGetter(columnIndex);
 
@@ -404,16 +405,17 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
         
         const { width, height, children, itemData, columnCount, useIsScrolling, itemKey = defaultItemKey, scrollbarSize = getScrollbarSize(), } = this.props;
         const { isScrolling } = this.state;
-    
+
         const estimatedTotalHeight = getEstimatedTotalHeight(
             this.props,
             this._instanceProps
         );
-    
+
         const rows: React.ReactElement[] = [];
         const rowWidth = estimatedTotalHeight >= height ? width - scrollbarSize : width;
         const shownRowsCount = rowStopIndex - rowStartIndex + 1;
     
+        // нет смысла рендерить скрытые колонки
         if(this._leftFixedColumnsWidth > 0 || this._rightFixedColumnsWidth > 0) {
     
             for (let visibleRowIndex = 0; visibleRowIndex < shownRowsCount; visibleRowIndex++) {
@@ -425,7 +427,7 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
                 const height = getRowHeight(this.props, rowIndex, this._instanceProps);
                 const marginTop = visibleRowIndex === 0 ? getRowOffset(this.props, rowIndex, this._instanceProps) : undefined;
     
-                for (let columnIndex = 0; columnIndex < this._lastLeftFixedColumn; columnIndex++) {
+                for (let columnIndex = 0; columnIndex < this._firstUnFixedColumn; columnIndex++) {
     
                     const width = getColumnWidth(this.props, columnIndex, this._instanceProps);
                     const item = createElement(children, {
@@ -444,7 +446,7 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
     
                     rowLeftColumns.push(item);
                 }
-    
+
                 for (let columnIndex = this._firstRightFixedColumn; columnIndex < columnCount; columnIndex++) {
     
                     const width = getColumnWidth(this.props, columnIndex, this._instanceProps);
@@ -495,7 +497,7 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
         this._lastFixedRenderedRowStopIndex = rowStopIndex;
         this._lastFixedRenderedContent = rows;
 
-        return this._lastFixedRenderedContent;
+        return rows;
     }
 
     scrollToItem({ align, rowIndex, columnIndex }: IScrollToItemParams) {
@@ -576,8 +578,7 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
             rowCount,
             style,
             useIsScrolling,
-            width,
-            columnGetter
+            width
         } = this.props;
     
         const { isScrolling } = this.state;
@@ -588,32 +589,15 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
         const items: (React.ReactElement | React.ReactElement[])[] = [];
 
         if (columnCount > 0 && rowCount) {
-    
-            let newColumnStartIndex = columnStartIndex;
-            let newColumnStopIndex = columnStopIndex;
-    
-            for (
-                let columnIndex = columnStartIndex;
-                columnIndex <= columnStopIndex;
-                columnIndex++
-            ) {
-                let column = columnGetter(columnIndex);
-                if (column.fixed === 'left' || column.fixed === true) {
-                    newColumnStartIndex++;
-                }
-                else if (column.fixed === 'right') {
-                    newColumnStopIndex--;
-                }
-            }
-    
+
             for (
                 let rowIndex = rowStartIndex;
                 rowIndex <= rowStopIndex;
                 rowIndex++
             ) {
                 for (
-                    let columnIndex = newColumnStartIndex;
-                    columnIndex <= newColumnStopIndex;
+                    let columnIndex = this._firstUnFixedColumn;
+                    columnIndex <= this._firstRightFixedColumn;
                     columnIndex++
                 ) {
                     items.push(
@@ -631,7 +615,7 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
             
             const rows = this._renderFixedColumns(rowStartIndex, rowStopIndex);
 
-            if(rows) {
+            if (rows) {
                 items.push(rows);
             }
         }
