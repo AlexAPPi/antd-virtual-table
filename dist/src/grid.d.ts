@@ -10,6 +10,7 @@ export interface IGridState {
     scrollLeft: number;
 }
 export interface IGridProps<RecordType extends Record<any, any> = any> extends VariableSizeGridProps<readonly RecordType[]> {
+    rerenderFixedColumnOnHorizontalScroll?: boolean;
     scrollbarSize?: number;
     itemData: readonly RecordType[];
     columnGetter: columnGetter<RecordType>;

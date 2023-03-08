@@ -285,6 +285,7 @@ export interface IGridState {
 }
 
 export interface IGridProps<RecordType extends Record<any, any> = any> extends VariableSizeGridProps<readonly RecordType[]> {
+    rerenderFixedColumnOnHorizontalScroll?: boolean,
     scrollbarSize?: number,
     itemData: readonly RecordType[],
     columnGetter: columnGetter<RecordType>,
@@ -392,7 +393,10 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
 
     _renderFixedColumns(rowStartIndex: number, rowStopIndex: number, update: boolean = false): React.ReactElement[] | undefined {
 
-        if(update === false
+        const { rerenderFixedColumnOnHorizontalScroll } = this.props;
+
+        if(rerenderFixedColumnOnHorizontalScroll === false
+        && update === false
         && this._lastFixedRenderedRowStartIndex === rowStartIndex
         && this._lastFixedRenderedRowStopIndex === rowStopIndex) {
             return this._lastFixedRenderedContent;
