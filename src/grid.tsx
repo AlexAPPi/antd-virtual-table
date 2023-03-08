@@ -267,7 +267,7 @@ const getColumnWidthOrCalculate = <TRecord extends Record<any, any> = any,>(
     props: Grid<TRecord>['props'],
     index: number,
     instanceProps: InstanceProps
-): number => getItemMetadata('row', props, index, instanceProps).size;
+): number => getItemMetadata('column', props, index, instanceProps).size;
 
 const fixedRowClassName = "fixed-virtial-grid-row";
 const fixedRowLeftColumnsClassName = "fixed-virtial-grid-row-left-columns";
@@ -402,7 +402,7 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
             return this._lastFixedRenderedContent;
         }
         
-        const { width, height, children, itemData, useIsScrolling, itemKey = defaultItemKey, scrollbarSize = getScrollbarSize(), } = this.props;
+        const { width, height, children, itemData, columnCount, useIsScrolling, itemKey = defaultItemKey, scrollbarSize = getScrollbarSize(), } = this.props;
         const { isScrolling } = this.state;
     
         const estimatedTotalHeight = getEstimatedTotalHeight(
@@ -445,7 +445,7 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
                     rowLeftColumns.push(item);
                 }
     
-                for (let columnIndex = 0; columnIndex > this._firstRightFixedColumn; columnIndex++) {
+                for (let columnIndex = this._firstRightFixedColumn; columnIndex < columnCount; columnIndex++) {
     
                     const width = getColumnWidth(this.props, columnIndex, this._instanceProps);
                     const item = createElement(children, {
@@ -476,12 +476,15 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
                                 width: rowWidth,
                             }}
                         >
+                            {rowLeftColumns.length > 0 &&
                             <div className={fixedRowLeftColumnsClassName}>
                                 {rowLeftColumns}
-                            </div>
+                            </div>}
+
+                            {rowRightColumns.length > 0 &&
                             <div className={fixedRowRightColumnsClassName}>
                                 {rowRightColumns}
-                            </div>
+                            </div>}
                         </div>
                     ));
                 }
