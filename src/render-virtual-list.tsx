@@ -55,10 +55,8 @@ export const RenderVirtualList = <RecordType extends Record<any, any>, >({
         const totalHeight = rawData.length * rowHeight;
 
         assignRef(connectObject, ref);
-
+        
         const columnWidthGetter = (index: number): number => {
-
-            console.log(index, normalizeColumns, normalizeIndexes);
 
             const column = normalizeColumns[index];
             const { width, overlap } = column;

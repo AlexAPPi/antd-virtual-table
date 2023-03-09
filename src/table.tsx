@@ -4,7 +4,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { Grid, OnScrollCallback } from './grid';
 import { assignRef, classNames } from './helpers';
 import { MemonableVirtualTableItem } from './item';
-import { InfoRef, RenderVirtualList } from './render-virtual-list';
+import { Info, InfoRef, RenderVirtualList } from './render-virtual-list';
 import { ColumnsType, GridChildComponentProps, ScrollConfig } from './interfaces';
 
 import './style.css';
@@ -16,7 +16,7 @@ export interface VirtualTableProps<RecordType extends Record<any, any>> extends 
     columns: ColumnsType<RecordType>,
     rowHeight: number,
     rerenderFixedColumnOnHorizontalScroll?: boolean,
-    onScroll?: OnScrollCallback
+    onScroll?: OnScrollCallback,
 }
 
 export function VirtualTable<RecordType extends Record<any, any>>(props: VirtualTableProps<RecordType>) {
@@ -24,7 +24,7 @@ export function VirtualTable<RecordType extends Record<any, any>>(props: Virtual
     const { className, columns, rowHeight, scroll, gridRef, outerGridRef, onScroll, onChange, rerenderFixedColumnOnHorizontalScroll } = props;
     
     const tableRef = useRef<HTMLElement | null>(null);
-
+    
     const internalGridRef = useRef<Grid<RecordType> | null>(null);
     const [connectObject] = useState<InfoRef>(() => {
 
