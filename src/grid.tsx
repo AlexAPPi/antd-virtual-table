@@ -3,7 +3,7 @@ import { Align, VariableSizeGrid, VariableSizeGridProps, GridOnScrollProps } fro
 import { ColumnType } from "./interfaces";
 import { getScrollbarSize } from "./domHelpers";
 import { classNames } from "./helpers";
-import { HackedGrid } from './fixed/grid.js';
+import { HackedGrid } from './hacked/grid.js';
 
 type columnGetter<TRecord extends Record<any, any> = any> = (index: number) => ColumnType<TRecord>;
 type itemSizeGetter = (index: number) => number;

@@ -1,7 +1,7 @@
 import React from "react";
 import { Align, VariableSizeGrid, VariableSizeGridProps, GridOnScrollProps } from "react-window";
 import { ColumnType } from "./interfaces";
-import { HackedGrid } from './fixed/grid.js';
+import { HackedGrid } from './hacked/grid.js';
 type columnGetter<TRecord extends Record<any, any> = any> = (index: number) => ColumnType<TRecord>;
 export type ScrollEvent = React.SyntheticEvent<ScrollEvent>;
 export type ItemMetadata = {
