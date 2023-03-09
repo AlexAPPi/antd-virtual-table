@@ -9,6 +9,8 @@ import { ColumnsType, GridChildComponentProps, ScrollConfig } from './interfaces
 
 import './style.css';
 
+export type ColumnType = 'fixed-left' | 'fixed-right' | 'common';
+
 export interface VirtualTableProps<RecordType extends Record<any, any>> extends Omit<TableProps<RecordType>, "columns" | "scroll"> {
     gridRef?: React.Ref<Grid<RecordType>>,
     outerGridRef?: React.Ref<HTMLElement>,
@@ -41,66 +43,86 @@ export function VirtualTable<RecordType extends Record<any, any>>(props: Virtual
 
             set scrollLeft(value: number) {
 
-                const currentScrollLeft = internalGridRef.current?.state.scrollLeft;
-
-                if(currentScrollLeft == value) {
-                    return;
-                }
-
                 if (internalGridRef.current) {
+
+                    const currentScrollLeft = internalGridRef.current.state.scrollLeft;
+
+                    if(currentScrollLeft == value) {
+                        return;
+                    }
+
                     internalGridRef.current.scrollTo({ scrollLeft: value });
                 }
             }
         }
     });
 
-    const fixSticky = useCallback((tableWrap?: HTMLElement | null) => {
+    const fixStickyHeaderOffset = useCallback((tableWrap?: HTMLElement | null) => {
+
+        // Данная функция нужна для поддержки overlap свойства колонки
+        // Исправляем смещение для sticky колонок
+        // Так же исправим баг связанный с таблицей
 
         if(tableWrap) {
 
-            // Исправляем смещение для sticky колонок
-            // При использовании кастомного компонента смещение колонок работает не корректно 
+            const header = tableWrap.querySelector<HTMLElement>(".ant-table .ant-table-header");
 
-            const headers = tableWrap.querySelectorAll<HTMLTableCellElement>(".ant-table .ant-table-header .ant-table-thead .ant-table-cell");
-            
-            let leftOffset = 0;
+            if (header) {
 
-            for(let headerIndex = 0; headerIndex < headers.length; headerIndex++) {
+                const headerCells = header.querySelectorAll<HTMLTableCellElement>(".ant-table-thead .ant-table-cell");
 
-                const header = headers[headerIndex];
+                let totalWidth = 0;
 
-                if (header.classList.contains("ant-table-cell-fix-left")) {
-                    header.style.left = `${leftOffset}px`;
-                    const width = header.getBoundingClientRect().width;
-                    leftOffset += width;
-                    continue;
+                for(let headerIndex = 0; headerIndex < headerCells.length; headerIndex++) {
+                    const cell = headerCells[headerIndex];
+                    const width = cell.getBoundingClientRect().width;
+                    totalWidth += width;
                 }
 
-                break;
-            }
-
-            let rightOffset = 0;
-
-            for(let headerIndex = headers.length - 1; headerIndex > -1; headerIndex--) {
-
-                const header = headers[headerIndex];
-
-                if (header.classList.contains("ant-table-cell-fix-right")) {
-                    header.style.right = `${rightOffset}px`;
-                    const width = header.getBoundingClientRect().width;
-                    rightOffset += width;
-                    continue;
+                // Сохраним предыдущее значение, если оно меньше расчитаного, не обновляем.
+                const maxWidth = parseFloat(header.style.maxWidth);
+                if (isNaN(maxWidth) || totalWidth < maxWidth) {
+                    header.style.maxWidth = `${totalWidth}px`;
                 }
 
-                break;
+                let leftOffset = 0;
+                let rightOffset = 0;
+
+                for(let headerIndex = 0; headerIndex < headerCells.length; headerIndex++) {
+
+                    const cell = headerCells[headerIndex];
+
+                    if (cell.classList.contains("ant-table-cell-fix-left")) {
+                        cell.style.left = `${leftOffset}px`;
+                        const width = cell.getBoundingClientRect().width;
+                        leftOffset += width;
+                        continue;
+                    }
+
+                    break;
+                }
+
+                for(let headerIndex = headerCells.length - 1; headerIndex > -1; headerIndex--) {
+
+                    const cell = headerCells[headerIndex];
+
+                    if (cell.classList.contains("ant-table-cell-fix-right")) {
+                        cell.style.right = `${rightOffset}px`;
+                        const width = cell.getBoundingClientRect().width;
+                        rightOffset += width;
+                        continue;
+                    }
+
+                    break;
+                }
             }
         }
         
     }, [scroll.x, scroll.y, scroll.scrollToFirstRowOnChange]);
 
-    const resetVirtualGrid = useCallback((columnIndex: number = 0, rowIndex: number = 0) => {
+    const reset = useCallback((columnIndex: number = 0, rowIndex: number = 0) => {
 
-        fixSticky(tableRef.current);
+        fixStickyHeaderOffset(tableRef.current);
 
         if(scroll.scrollToFirstRowOnChange) {
             connectObject.scrollLeft = 0;
@@ -112,11 +134,11 @@ export function VirtualTable<RecordType extends Record<any, any>>(props: Virtual
             shouldForceUpdate: true,
         });
 
-    }, [connectObject, fixSticky]);
+    }, [connectObject, fixStickyHeaderOffset]);
 
     const handleOnChange = useCallback<NonNullable<typeof onChange>>((pagination, filters, sorter, extra) => {
 
-        fixSticky(tableRef.current);
+        fixStickyHeaderOffset(tableRef.current);
 
         if(onChange) {
             onChange(pagination, filters, sorter, extra);
@@ -124,10 +146,10 @@ export function VirtualTable<RecordType extends Record<any, any>>(props: Virtual
 
         if(scroll.scrollToFirstRowOnChange) {
 
-            resetVirtualGrid();
+            reset();
         }
 
-    }, [onChange, fixSticky, resetVirtualGrid]);
+    }, [onChange, fixStickyHeaderOffset, reset]);
 
     const [normalizeColumns, normalizeIndexes, getColumn, cellRender] = useMemo(() => {
 
@@ -192,16 +214,15 @@ export function VirtualTable<RecordType extends Record<any, any>>(props: Virtual
         cellRender,
         onScroll
     });
-
-    useEffect(() => resetVirtualGrid(), [scroll.x, columns]);
-    useEffect(() => resetVirtualGrid(columns.length > 0 ? columns.length - 2 : 0), [scroll.y]);
+    
+    useEffect(() => fixStickyHeaderOffset(tableRef.current), [scroll.x, columns]);
 
     return (
         <Table<RecordType>
             {...props}
             ref={(el) => {
                 assignRef(el, tableRef);
-                fixSticky(el);
+                fixStickyHeaderOffset(el);
             }}
             className={classNames("virtual-table", className)}
             components={{

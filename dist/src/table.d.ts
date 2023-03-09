@@ -3,6 +3,7 @@ import React from 'react';
 import { Grid, OnScrollCallback } from './grid';
 import { ColumnsType, ScrollConfig } from './interfaces';
 import './style.css';
+export type ColumnType = 'fixed-left' | 'fixed-right' | 'common';
 export interface VirtualTableProps<RecordType extends Record<any, any>> extends Omit<TableProps<RecordType>, "columns" | "scroll"> {
     gridRef?: React.Ref<Grid<RecordType>>;
     outerGridRef?: React.Ref<HTMLElement>;
