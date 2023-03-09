@@ -36,16 +36,16 @@ export interface IGridProps<RecordType extends Record<any, any> = any> extends V
 
 export class HackedGrid<RecordType extends Record<any, any> = any> extends VariableSizeGrid<readonly RecordType[]> {
     
-    declare props: IGridProps<RecordType>;
-    declare state: IGridState;
+    public props: IGridProps<RecordType>;
+    public state: Readonly<IGridState>;
 
-    protected declare _instanceProps: InstanceProps;
+    protected _instanceProps: InstanceProps;
 
-    protected declare _getHorizontalRangeToRender: () => [number, number];
-    protected declare _getVerticalRangeToRender: () => [number, number];
-    protected declare _getItemStyle: (rowIndex: number, columnIndex: number) => IItemStyle;
-    protected declare _outerRefSetter: (ref: React.Ref<HTMLElement>) => void;
-    protected declare _onScroll: (event: ScrollEvent) => void;
-
-    declare componentDidUpdate(prevProps: IGridProps<RecordType>, prevState: IGridState, snapshot: any);
+    protected _getHorizontalRangeToRender: () => [number, number];
+    protected _getVerticalRangeToRender: () => [number, number];
+    protected _getItemStyle: (rowIndex: number, columnIndex: number) => IItemStyle;
+    protected _outerRefSetter: (ref: React.Ref<HTMLElement>) => void;
+    protected _onScroll: (event: ScrollEvent) => void;
+    
+    protected componentDidUpdate(prevProps: IGridProps<RecordType>, prevState: IGridState, snapshot: any);
 }

@@ -3,11 +3,16 @@ import { Align, VariableSizeGrid, VariableSizeGridProps, GridOnScrollProps } fro
 import { ColumnType } from "./interfaces";
 import { getScrollbarSize } from "./domHelpers";
 import { classNames } from "./helpers";
-import { HackedGrid } from './hacked/grid.js';
 
-type columnGetter<TRecord extends Record<any, any> = any> = (index: number) => ColumnType<TRecord>;
-type itemSizeGetter = (index: number) => number;
-type ItemType = 'column' | 'row';
+/*#if _BUILDLIB
+//#else */
+import { HackedGrid } from './hacked/grid.js';
+//#endif
+
+export type columnGetter<TRecord extends Record<any, any> = any> = (index: number) => ColumnType<TRecord>;
+export type itemSizeGetter = (index: number) => number;
+export type ItemType = 'column' | 'row';
+
 export type ScrollEvent = React.SyntheticEvent<ScrollEvent>;
 
 export type ItemMetadata = {
@@ -341,11 +346,11 @@ export interface IResetAfterIndicesParams {
     shouldForceUpdate?: boolean | undefined;
 }
 
-/*
+/*#if _BUILDLIB*/
 export class Grid<RecordType extends Record<any, any> = any> extends VariableSizeGrid<readonly RecordType[]> {
 
     declare props: IGridProps<RecordType>;
-    declare state: IGridState;
+    declare state: Readonly<IGridState>;
 
     declare private _instanceProps: InstanceProps;
 
@@ -354,10 +359,9 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
     declare private _getItemStyle: (rowIndex: number, columnIndex: number) => IItemStyle;
     declare private _outerRefSetter: (ref: any) => void;
     declare private _onScroll: (event: ScrollEvent) => void;
-    ...
-*/
-
+/*#else
 export class Grid<RecordType extends Record<any, any> = any> extends HackedGrid<RecordType> {
+//#endif*/
 
     private _leftFixedColumnsWidth = 0;
     private _rightFixedColumnsWidth = 0;
@@ -703,6 +707,7 @@ export class Grid<RecordType extends Record<any, any> = any> extends HackedGrid<
             this._updateFixedColumnsVars();
         }
 
+        // @ts-ignore
         super.componentDidUpdate(prevProps, prevState, snapshot);
     }
 }

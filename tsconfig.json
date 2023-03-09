@@ -34,6 +34,7 @@
   ],
   "exclude": [
     "node_modules",
+    "src/hacked/**/*",
     "src/**/*.test.tsx",
     "src/**/*.stories.tsx"
   ]

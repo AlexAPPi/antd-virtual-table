@@ -1,8 +1,9 @@
 import React from "react";
 import { Align, VariableSizeGrid, VariableSizeGridProps, GridOnScrollProps } from "react-window";
 import { ColumnType } from "./interfaces";
-import { HackedGrid } from './hacked/grid.js';
-type columnGetter<TRecord extends Record<any, any> = any> = (index: number) => ColumnType<TRecord>;
+export type columnGetter<TRecord extends Record<any, any> = any> = (index: number) => ColumnType<TRecord>;
+export type itemSizeGetter = (index: number) => number;
+export type ItemType = 'column' | 'row';
 export type ScrollEvent = React.SyntheticEvent<ScrollEvent>;
 export type ItemMetadata = {
     offset: number;
@@ -72,7 +73,15 @@ export interface IResetAfterIndicesParams {
     rowIndex: number;
     shouldForceUpdate?: boolean | undefined;
 }
-export declare class Grid<RecordType extends Record<any, any> = any> extends HackedGrid<RecordType> {
+export declare class Grid<RecordType extends Record<any, any> = any> extends VariableSizeGrid<readonly RecordType[]> {
+    props: IGridProps<RecordType>;
+    state: Readonly<IGridState>;
+    private _instanceProps;
+    private _getHorizontalRangeToRender;
+    private _getVerticalRangeToRender;
+    private _getItemStyle;
+    private _outerRefSetter;
+    private _onScroll;
     private _leftFixedColumnsWidth;
     private _rightFixedColumnsWidth;
     private _firstUnFixedColumn;
@@ -88,5 +97,4 @@ export declare class Grid<RecordType extends Record<any, any> = any> extends Hac
     render(): React.ReactElement<any, string | React.JSXElementConstructor<any>>;
     componentDidUpdate(prevProps: IGridProps<RecordType>, prevState: IGridState, snapshot: any): void;
 }
-export {};
 //# sourceMappingURL=grid.d.ts.map

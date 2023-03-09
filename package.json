@@ -37,6 +37,7 @@
     "rollup-plugin-copy": "^3.4.0",
     "rollup-plugin-delete": "^2.0.0",
     "rollup-plugin-import-css": "^3.2.1",
+    "rollup-plugin-jscc": "^2.0.0",
     "rollup-plugin-minification": "^0.2.0",
     "rollup-plugin-peer-deps-external": "^2.2.4",
     "rollup-plugin-postcss": "^4.0.2",
@@ -46,11 +47,6 @@
   },
   "dependencies": {
     "react": "^18.2.0"
-  },
-  "peerDependenciesMeta": {
-    "@babel/preset-typescript": {
-      "allowDeclareFields": true
-    }
   },
   "browserslist": {
     "production": [
