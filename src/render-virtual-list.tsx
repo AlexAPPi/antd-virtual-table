@@ -58,6 +58,8 @@ export const RenderVirtualList = <RecordType extends Record<any, any>, >({
 
         const columnWidthGetter = (index: number): number => {
 
+            console.log(index, normalizeColumns, normalizeIndexes);
+
             const column = normalizeColumns[index];
             const { width, overlap } = column;
     
