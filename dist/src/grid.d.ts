@@ -1,7 +1,38 @@
 import React from "react";
 import { Align, VariableSizeGrid, VariableSizeGridProps, GridOnScrollProps } from "react-window";
 import { ColumnType } from "./interfaces";
+import { HackedGrid } from './fixed/grid.js';
 type columnGetter<TRecord extends Record<any, any> = any> = (index: number) => ColumnType<TRecord>;
+export type ScrollEvent = React.SyntheticEvent<ScrollEvent>;
+export type ItemMetadata = {
+    offset: number;
+    size: number;
+};
+export type ItemMetadataMap = {
+    [index: number]: ItemMetadata;
+};
+export type InstanceProps = {
+    columnMetadataMap: ItemMetadataMap;
+    estimatedColumnWidth: number;
+    estimatedRowHeight: number;
+    lastMeasuredColumnIndex: number;
+    lastMeasuredRowIndex: number;
+    rowMetadataMap: ItemMetadataMap;
+};
+export interface IItemStyle {
+    position: React.CSSProperties['position'];
+    left: number | undefined;
+    right: number | undefined;
+    top: number;
+    height: number;
+    width: number;
+}
+export interface IGridProps<RecordType extends Record<any, any> = any> extends VariableSizeGridProps<readonly RecordType[]> {
+    rerenderFixedColumnOnHorizontalScroll?: boolean;
+    scrollbarSize?: number;
+    itemData: readonly RecordType[];
+    columnGetter: columnGetter<RecordType>;
+}
 export type OnScrollProps = GridOnScrollProps;
 export type OnScrollCallback = (props: OnScrollProps) => void;
 export interface IGridState {
@@ -41,15 +72,7 @@ export interface IResetAfterIndicesParams {
     rowIndex: number;
     shouldForceUpdate?: boolean | undefined;
 }
-export declare class Grid<RecordType extends Record<any, any> = any> extends VariableSizeGrid<readonly RecordType[]> {
-    props: IGridProps<RecordType>;
-    state: IGridState;
-    private _instanceProps;
-    private _getHorizontalRangeToRender;
-    private _getVerticalRangeToRender;
-    private _getItemStyle;
-    private _outerRefSetter;
-    private _onScroll;
+export declare class Grid<RecordType extends Record<any, any> = any> extends HackedGrid<RecordType> {
     private _leftFixedColumnsWidth;
     private _rightFixedColumnsWidth;
     private _firstUnFixedColumn;

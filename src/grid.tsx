@@ -1,27 +1,46 @@
-import React, { Component } from "react";
-import { createElement, SyntheticEvent } from "react";
+import React, { createElement } from "react";
 import { Align, VariableSizeGrid, VariableSizeGridProps, GridOnScrollProps } from "react-window";
 import { ColumnType } from "./interfaces";
 import { getScrollbarSize } from "./domHelpers";
 import { classNames } from "./helpers";
+import { HackedGrid } from './fixed/grid.js';
 
-type ScrollEvent = SyntheticEvent<HTMLDivElement>;
 type columnGetter<TRecord extends Record<any, any> = any> = (index: number) => ColumnType<TRecord>;
 type itemSizeGetter = (index: number) => number;
 type ItemType = 'column' | 'row';
-type ItemMetadata = {
+export type ScrollEvent = React.SyntheticEvent<ScrollEvent>;
+
+export type ItemMetadata = {
     offset: number,
     size: number,
-};
-type ItemMetadataMap = { [index: number]: ItemMetadata };
-type InstanceProps = {
+}
+
+export type ItemMetadataMap = { [index: number]: ItemMetadata }
+
+export type InstanceProps = {
     columnMetadataMap: ItemMetadataMap,
     estimatedColumnWidth: number,
     estimatedRowHeight: number,
     lastMeasuredColumnIndex: number,
     lastMeasuredRowIndex: number,
     rowMetadataMap: ItemMetadataMap,
-};
+}
+
+export interface IItemStyle {
+    position: React.CSSProperties['position'],
+    left: number | undefined,
+    right: number | undefined,
+    top: number,
+    height: number,
+    width: number,
+}
+
+export interface IGridProps<RecordType extends Record<any, any> = any> extends VariableSizeGridProps<readonly RecordType[]> {
+    rerenderFixedColumnOnHorizontalScroll?: boolean,
+    scrollbarSize?: number,
+    itemData: readonly RecordType[],
+    columnGetter: columnGetter<RecordType>,
+}
 
 const defaultItemKey = <TData,>({ columnIndex, data, rowIndex }: { columnIndex: number, data: TData | undefined, rowIndex: number }) =>
   `${rowIndex}:${columnIndex}`;
@@ -322,6 +341,7 @@ export interface IResetAfterIndicesParams {
     shouldForceUpdate?: boolean | undefined;
 }
 
+/*
 export class Grid<RecordType extends Record<any, any> = any> extends VariableSizeGrid<readonly RecordType[]> {
 
     declare props: IGridProps<RecordType>;
@@ -334,6 +354,10 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
     declare private _getItemStyle: (rowIndex: number, columnIndex: number) => IItemStyle;
     declare private _outerRefSetter: (ref: any) => void;
     declare private _onScroll: (event: ScrollEvent) => void;
+    ...
+*/
+
+export class Grid<RecordType extends Record<any, any> = any> extends HackedGrid<RecordType> {
 
     private _leftFixedColumnsWidth = 0;
     private _rightFixedColumnsWidth = 0;
@@ -354,7 +378,7 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
 
     private _updateFixedColumnsVars() {
 
-        const { columnCount, columnGetter } = this.props;
+        const { columnCount, columnGetter, columnWidth } = this.props;
 
         this._firstUnFixedColumn = 0;
         this._firstRightFixedColumn = columnCount;
@@ -371,7 +395,7 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
 
             if (column.fixed === 'left' || column.fixed === true) {
                 this._firstUnFixedColumn++;
-                this._leftFixedColumnsWidth += getColumnWidthOrCalculate(this.props, columnIndex, this._instanceProps);
+                this._leftFixedColumnsWidth += columnWidth(columnIndex);
                 continue;
             }
 
@@ -384,7 +408,7 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
 
             if (column.fixed === 'right') {
                 this._firstRightFixedColumn--;
-                this._rightFixedColumnsWidth += getColumnWidthOrCalculate(this.props, columnIndex, this._instanceProps);
+                this._rightFixedColumnsWidth += columnWidth(columnIndex);
                 continue;
             }
 
@@ -394,7 +418,7 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
 
     _renderFixedColumns(rowStartIndex: number, rowStopIndex: number, update: boolean = false): React.ReactElement[] | undefined {
 
-        const { rerenderFixedColumnOnHorizontalScroll } = this.props;
+        const { rerenderFixedColumnOnHorizontalScroll, columnWidth, rowHeight } = this.props;
 
         if(rerenderFixedColumnOnHorizontalScroll === false
         && update === false
@@ -423,13 +447,13 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
                 const rowLeftColumns: React.ReactElement[] = [];
                 const rowRightColumns: React.ReactElement[] = [];
                 const rowIndex = rowStartIndex + visibleRowIndex;
-    
-                const height = getRowHeight(this.props, rowIndex, this._instanceProps);
+
+                const height = rowHeight(rowIndex);
                 const marginTop = visibleRowIndex === 0 ? getRowOffset(this.props, rowIndex, this._instanceProps) : undefined;
     
                 for (let columnIndex = 0; columnIndex < this._firstUnFixedColumn; columnIndex++) {
     
-                    const width = getColumnWidth(this.props, columnIndex, this._instanceProps);
+                    const width = columnWidth(columnIndex);
                     const item = createElement(children, {
                         key: itemKey({ columnIndex, data: itemData, rowIndex }),
                         rowIndex,
@@ -449,7 +473,7 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
 
                 for (let columnIndex = this._firstRightFixedColumn; columnIndex < columnCount; columnIndex++) {
     
-                    const width = getColumnWidth(this.props, columnIndex, this._instanceProps);
+                    const width = columnWidth(columnIndex);
                     const item = createElement(children, {
                         key: itemKey({ columnIndex, data: itemData, rowIndex }),
                         rowIndex,
@@ -673,13 +697,12 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
 
     componentDidUpdate(prevProps: IGridProps<RecordType>, prevState: IGridState, snapshot: any): void {
 
-        // @ts-ignore
-        super.componentDidUpdate(prevProps, prevState, snapshot);
-
         if(prevProps.columnGetter !== this.props.columnGetter
         || prevProps.columnCount !== this.props.columnCount
         || prevProps.columnWidth !== this.props.columnWidth) {
             this._updateFixedColumnsVars();
         }
+
+        super.componentDidUpdate(prevProps, prevState, snapshot);
     }
 }
