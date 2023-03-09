@@ -87,7 +87,7 @@ export function VirtualTable<RecordType extends Record<any, any>>(props: Virtual
                     totalWidth += width;
                 }
 
-                // Сохраним предыдущее значение, если оно меньше расчитаного, не обновляем.
+                // TODO: Возможно пользователь задал свое значение, тут надо подумать...
                 header.style.maxWidth = `${totalWidth}px`;
 
                 let leftOffset = 0;
