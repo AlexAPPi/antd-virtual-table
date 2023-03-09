@@ -6,12 +6,16 @@ import { assignRef, classNames } from './helpers';
 import { MemonableVirtualTableItem } from './item';
 import { Info, InfoRef, RenderVirtualList } from './render-virtual-list';
 import { ColumnsType, GridChildComponentProps, ScrollConfig } from './interfaces';
+import { TableComponents } from 'rc-table/lib/interface';
 
 import './style.css';
 
 export type ColumnType = 'fixed-left' | 'fixed-right' | 'common';
 
-export interface VirtualTableProps<RecordType extends Record<any, any>> extends Omit<TableProps<RecordType>, "columns" | "scroll"> {
+export type VirtualTableComponents<RecordType> = Omit<TableComponents<RecordType>, "body">;
+
+export interface VirtualTableProps<RecordType extends Record<any, any>> extends Omit<TableProps<RecordType>, "columns" | "scroll" | "components"> {
+    components?: VirtualTableComponents<RecordType>,
     gridRef?: React.Ref<Grid<RecordType>>,
     outerGridRef?: React.Ref<HTMLElement>,
     scroll: ScrollConfig,
@@ -23,7 +27,7 @@ export interface VirtualTableProps<RecordType extends Record<any, any>> extends 
 
 export function VirtualTable<RecordType extends Record<any, any>>(props: VirtualTableProps<RecordType>) {
 
-    const { className, columns, rowHeight, scroll, gridRef, outerGridRef, onScroll, onChange, rerenderFixedColumnOnHorizontalScroll } = props;
+    const { className, columns, rowHeight, scroll, gridRef, outerGridRef, onScroll, onChange, rerenderFixedColumnOnHorizontalScroll, components } = props;
     
     const tableRef = useRef<HTMLElement | null>(null);
     
@@ -63,6 +67,10 @@ export function VirtualTable<RecordType extends Record<any, any>>(props: Virtual
         // Исправляем смещение для sticky колонок
         // Так же исправим баг связанный с таблицей
 
+        if(components?.header) {
+            return;
+        }
+
         if(tableWrap) {
 
             const header = tableWrap.querySelector<HTMLElement>(".ant-table .ant-table-header");
@@ -80,10 +88,7 @@ export function VirtualTable<RecordType extends Record<any, any>>(props: Virtual
                 }
 
                 // Сохраним предыдущее значение, если оно меньше расчитаного, не обновляем.
-                const maxWidth = parseFloat(header.style.maxWidth);
-                if (isNaN(maxWidth) || totalWidth < maxWidth) {
-                    header.style.maxWidth = `${totalWidth}px`;
-                }
+                header.style.maxWidth = `${totalWidth}px`;
 
                 let leftOffset = 0;
                 let rightOffset = 0;
@@ -118,7 +123,7 @@ export function VirtualTable<RecordType extends Record<any, any>>(props: Virtual
             }
         }
         
-    }, [scroll.x, scroll.y, scroll.scrollToFirstRowOnChange]);
+    }, [scroll.x, scroll.y, scroll.scrollToFirstRowOnChange, components?.header]);
 
     const reset = useCallback((columnIndex: number = 0, rowIndex: number = 0) => {
 
@@ -174,7 +179,7 @@ export function VirtualTable<RecordType extends Record<any, any>>(props: Virtual
         const getColumn = (index: number) => normalizeColumns[index];
         const cellRender = (props: GridChildComponentProps<RecordType>) => {
 
-            const { columnIndex, data } = props;
+            const { columnIndex } = props;
             const originalColumnIndex = normalizeIndexes[columnIndex];
             const column = normalizeColumns[columnIndex];
 
@@ -183,7 +188,6 @@ export function VirtualTable<RecordType extends Record<any, any>>(props: Virtual
                     {...props}
                     originalColumnIndex={originalColumnIndex}
                     column={column}
-                    data={data}
                 />
             );
         };
@@ -214,8 +218,8 @@ export function VirtualTable<RecordType extends Record<any, any>>(props: Virtual
         cellRender,
         onScroll
     });
-    
-    useEffect(() => fixStickyHeaderOffset(tableRef.current), [scroll.x, columns]);
+
+    useEffect(() => fixStickyHeaderOffset(tableRef.current), [columns, fixStickyHeaderOffset]);
 
     return (
         <Table<RecordType>
@@ -226,6 +230,7 @@ export function VirtualTable<RecordType extends Record<any, any>>(props: Virtual
             }}
             className={classNames("virtual-table", className)}
             components={{
+                ...components,
                 body: renderVirtualList,
             }}
             onChange={handleOnChange}
