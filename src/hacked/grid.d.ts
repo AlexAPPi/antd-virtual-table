@@ -1,5 +1,7 @@
 import { VariableSizeGrid, VariableSizeGridProps } from "react-window";
+import { ColumnType } from '../interfaces';
 
+export type columnGetter<TRecord extends Record<any, any> = any> = (index: number) => ColumnType<TRecord>;
 export type ScrollEvent = React.SyntheticEvent<ScrollEvent>;
 
 export type ItemMetadata = {
@@ -27,6 +29,12 @@ export interface IItemStyle {
     width: number,
 }
 
+export interface IGridState {
+    isScrolling: boolean,
+    scrollTop: number,
+    scrollLeft: number,
+}
+
 export interface IGridProps<RecordType extends Record<any, any> = any> extends VariableSizeGridProps<readonly RecordType[]> {
     rerenderFixedColumnOnHorizontalScroll?: boolean,
     scrollbarSize?: number,
@@ -46,6 +54,4 @@ export class HackedGrid<RecordType extends Record<any, any> = any> extends Varia
     protected _getItemStyle: (rowIndex: number, columnIndex: number) => IItemStyle;
     protected _outerRefSetter: (ref: React.Ref<HTMLElement>) => void;
     protected _onScroll: (event: ScrollEvent) => void;
-    
-    protected componentDidUpdate(prevProps: IGridProps<RecordType>, prevState: IGridState, snapshot: any);
 }

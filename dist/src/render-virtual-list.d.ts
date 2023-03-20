@@ -1,6 +1,7 @@
 import React from "react";
 import { Grid, OnScrollCallback } from "./grid";
 import { ColumnsType, ColumnType, GridChildComponentProps, ScrollViewSize } from "./interfaces";
+import { TableLocale } from "antd/lib/table/interface";
 export interface InfoRef {
     scrollLeft: number;
 }
@@ -13,6 +14,7 @@ export interface Info {
     }) => void;
 }
 export interface IRenderVirtualListProps<RecordType extends Record<any, any> = any> {
+    locale: TableLocale | undefined;
     scroll: ScrollViewSize;
     gridRef?: React.Ref<Grid<RecordType>>;
     outerGridRef?: React.Ref<HTMLElement>;
@@ -27,5 +29,5 @@ export interface IRenderVirtualListProps<RecordType extends Record<any, any> = a
     cellRender: (props: GridChildComponentProps<RecordType>) => React.ReactElement;
     onScroll?: OnScrollCallback;
 }
-export declare const RenderVirtualList: <RecordType extends Record<any, any>>({ scroll, gridRef, outerGridRef, rowHeight, columns, connectObject, normalizeColumns, normalizeIndexes, rerenderFixedColumnOnHorizontalScroll, getColumn, rowHeightGetter, cellRender, onScroll: onScrollTable }: IRenderVirtualListProps<RecordType>) => (rawData: readonly RecordType[], info: Info) => JSX.Element;
+export declare const RenderVirtualList: <RecordType extends Record<any, any>>({ locale, scroll, gridRef, outerGridRef, rowHeight, columns, connectObject, normalizeColumns, normalizeIndexes, rerenderFixedColumnOnHorizontalScroll, getColumn, rowHeightGetter, cellRender, onScroll: onScrollTable }: IRenderVirtualListProps<RecordType>) => (rawData: readonly RecordType[], info: Info) => JSX.Element;
 //# sourceMappingURL=render-virtual-list.d.ts.map

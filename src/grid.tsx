@@ -4,11 +4,6 @@ import { ColumnType } from "./interfaces";
 import { getScrollbarSize } from "./domHelpers";
 import { classNames } from "./helpers";
 
-/*#if _BUILDLIB
-//#else */
-import { HackedGrid } from './hacked/grid.js';
-//#endif
-
 export type columnGetter<TRecord extends Record<any, any> = any> = (index: number) => ColumnType<TRecord>;
 export type itemSizeGetter = (index: number) => number;
 export type ItemType = 'column' | 'row';
@@ -359,7 +354,9 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
     declare private _getItemStyle: (rowIndex: number, columnIndex: number) => IItemStyle;
     declare private _outerRefSetter: (ref: any) => void;
     declare private _onScroll: (event: ScrollEvent) => void;
+    
 /*#else
+import { HackedGrid } from './hacked/grid.js';
 export class Grid<RecordType extends Record<any, any> = any> extends HackedGrid<RecordType> {
 //#endif*/
 

@@ -1,8 +1,11 @@
 import React from "react";
-import { Empty } from "antd";
+import { ConfigProvider, Empty } from "antd";
 import { Grid, OnScrollCallback } from "./grid";
-import { assignRef, sumColumnWidths } from "./helpers";
+import { assignRef, refSetter, sumColumnWidths } from "./helpers";
 import { ColumnsType, ColumnType, GridChildComponentProps, ScrollViewSize } from "./interfaces";
+import { TableLocale } from "antd/lib/table/interface";
+
+import defaultLocale from 'antd/locale/en_US';
 
 export interface InfoRef {
     scrollLeft: number;
@@ -18,6 +21,7 @@ export interface Info {
 }
 
 export interface IRenderVirtualListProps<RecordType extends Record<any, any> = any> {
+    locale: TableLocale | undefined,
     scroll: ScrollViewSize,
     gridRef?: React.Ref<Grid<RecordType>>,
     outerGridRef?: React.Ref<HTMLElement>,
@@ -34,6 +38,7 @@ export interface IRenderVirtualListProps<RecordType extends Record<any, any> = a
 }
 
 export const RenderVirtualList = <RecordType extends Record<any, any>, >({
+    locale,
     scroll,
     gridRef,
     outerGridRef,
@@ -49,10 +54,28 @@ export const RenderVirtualList = <RecordType extends Record<any, any>, >({
     onScroll: onScrollTable
 }: IRenderVirtualListProps<RecordType>) => {
 
+    const {
+        locale: contextLocale = defaultLocale,
+        renderEmpty,
+    } = React.useContext(ConfigProvider.ConfigContext);
+
+    const emptyText = (locale && locale.emptyText) || renderEmpty?.('Table') || (
+        <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+        />
+    );
+
     return (rawData: readonly RecordType[], info: Info) => {
 
         const { scrollbarSize, ref, onScroll } = info;
         const totalHeight = rawData.length * rowHeight;
+
+        const hasData = rawData && rawData.length > 0;
+        const emptyNode = hasData
+                        ? null
+                        : typeof emptyText === 'function'
+                        ? emptyText()
+                        : emptyText;
 
         assignRef(connectObject, ref);
         
@@ -85,17 +108,13 @@ export const RenderVirtualList = <RecordType extends Record<any, any>, >({
 
         return (
             <div className="virtual-grid-wrap">
-                {(!rawData || rawData.length == 0) &&
+                {emptyNode &&
                 <div className="virtual-grid-empty">
-                    <Empty
-                        image={Empty.PRESENTED_IMAGE_SIMPLE}
-                    />
+                    {emptyNode}
                 </div>}
                 <Grid<RecordType>
                     useIsScrolling
-                    ref={(ref) => {
-                        assignRef(ref, gridRef);
-                    }}
+                    ref={refSetter(gridRef)}
                     estimatedColumnWidth={totalWidth / normalizeColumns.length}
                     estimatedRowHeight={rowHeight}
                     outerRef={outerGridRef}

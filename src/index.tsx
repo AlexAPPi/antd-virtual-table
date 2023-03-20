@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import { VirtualTable } from './table';
 import { ColumnsType, ColumnType } from './interfaces';
+import { ConfigProvider } from 'antd';
+
+import ru from 'antd/locale/ru_RU';
 
 import './style.css';
 
@@ -93,14 +96,23 @@ function Sample() {
     }, [setWindowSize]);
 
     return (
-        <VirtualTable<RecordType>
-            scroll={{x: windowSize[0], y: windowSize[1]}}
-            rowHeight={50}
-            columns={columns}
-            dataSource={dataSource}
-            pagination={false}
-            bordered
-        />
+        <ConfigProvider
+            //renderEmpty={() => '5555'}
+            locale={ru}
+        >
+            <VirtualTable<RecordType>
+                scroll={{x: windowSize[0], y: windowSize[1]}}
+                //locale={{
+                //    emptyText: "321"
+                //}}
+                rowHeight={50}
+                columns={columns}
+                //dataSource={dataSource}
+                dataSource={[]}
+                pagination={false}
+                bordered
+            />
+        </ConfigProvider>
     )
 }
 

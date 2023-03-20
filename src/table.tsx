@@ -1,10 +1,10 @@
-import { Table, TableProps } from 'antd';
 import React, { useEffect } from 'react';
+import { Table, TableProps } from 'antd';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { Grid, OnScrollCallback } from './grid';
-import { assignRef, classNames } from './helpers';
+import { assignRef, classNames, refSetter } from './helpers';
 import { MemonableVirtualTableItem } from './item';
-import { Info, InfoRef, RenderVirtualList } from './render-virtual-list';
+import { InfoRef, RenderVirtualList } from './render-virtual-list';
 import { ColumnsType, GridChildComponentProps, ScrollConfig } from './interfaces';
 import { TableComponents } from 'rc-table/lib/interface';
 
@@ -27,7 +27,7 @@ export interface VirtualTableProps<RecordType extends Record<any, any>> extends 
 
 export function VirtualTable<RecordType extends Record<any, any>>(props: VirtualTableProps<RecordType>) {
 
-    const { className, columns, rowHeight, scroll, gridRef, outerGridRef, onScroll, onChange, rerenderFixedColumnOnHorizontalScroll, components } = props;
+    const { className, columns, rowHeight, scroll, gridRef, outerGridRef, onScroll, onChange, rerenderFixedColumnOnHorizontalScroll, components, locale } = props;
     
     const tableRef = useRef<HTMLElement | null>(null);
     
@@ -204,8 +204,9 @@ export function VirtualTable<RecordType extends Record<any, any>>(props: Virtual
     const rowHeightGetter = useCallback(() => rowHeight, [rowHeight]);
 
     const renderVirtualList = RenderVirtualList({
+        locale,
         scroll,
-        gridRef: (ref) => { assignRef(ref, internalGridRef, gridRef) },
+        gridRef: refSetter(internalGridRef, gridRef),
         outerGridRef,
         rowHeight,
         columns,

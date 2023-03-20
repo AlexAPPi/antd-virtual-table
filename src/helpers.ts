@@ -41,6 +41,10 @@ export function assignRef<T>(refValue: T, ...refs: (React.Ref<T> | undefined)[])
     }
 }
 
+export function refSetter<T>(...refs: (React.Ref<T> | undefined)[]) {
+    return (ref: T) => assignRef(ref, ...refs);
+}
+
 export function mixClassNameSingle(classList1: string, classList2: string | undefined) {
     return classList1 + (classList2 ? " " + classList2 : '');
 }

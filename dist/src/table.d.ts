@@ -1,5 +1,5 @@
-import { TableProps } from 'antd';
 import React from 'react';
+import { TableProps } from 'antd';
 import { Grid, OnScrollCallback } from './grid';
 import { ColumnsType, ScrollConfig } from './interfaces';
 import { TableComponents } from 'rc-table/lib/interface';

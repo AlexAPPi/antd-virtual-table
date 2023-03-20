@@ -4,6 +4,7 @@ export declare function sumColumnWidths(columnWidthGetter: ValueGetter<number>, 
 export declare function sumRowsHeights(rowHeightGetter: ValueGetter<number>, index: number): number;
 export declare function isFunction(value: any): value is Function;
 export declare function assignRef<T>(refValue: T, ...refs: (React.Ref<T> | undefined)[]): void;
+export declare function refSetter<T>(...refs: (React.Ref<T> | undefined)[]): (ref: T) => void;
 export declare function mixClassNameSingle(classList1: string, classList2: string | undefined): string;
 export declare const hasOwn: (v: PropertyKey) => boolean;
 export type ClassNamesValue = string | number | boolean | undefined | null;
