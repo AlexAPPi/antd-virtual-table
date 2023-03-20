@@ -70,7 +70,7 @@ export const RenderVirtualList = <RecordType extends Record<any, any>, >({
         const { scrollbarSize, ref, onScroll } = info;
         const totalHeight = rawData.length * rowHeight;
 
-        const hasData = rawData && rawData.length > 0;
+        const hasData   = rawData.length > 0;
         const emptyNode = hasData
                         ? null
                         : typeof emptyText === 'function'
