@@ -17,54 +17,50 @@ const render: ColumnType<RecordType>['render']  = (value, itemData, index, isScr
 
 const defaultColumns: ColumnsType<RecordType> = [
     {
+        title: 1,
         key: '1',
         width: 40,
-        fixed: true,
+        fixed: 'left',
         render
     },
     {
+        title: 2,
         key: '2',
         width: 40,
-        fixed: true,
+        fixed: 'left',
         render
     },
 ];
 
-for(var i = 3; i < 100; i++) {
+for(var i = 3; i < 101; i++) {
     defaultColumns.push({
+        title: i,
         key: i,
         width: 40,
         render
     });
 }
 
-/*
-defaultColumns.push(...[{
+const dataSource: RecordType[] = []
+
+for(var i = 0; i < 100; i++) {
+    dataSource.push({value: i});
+}
+
+defaultColumns.push({
+    title: 101,
     key: 101,
     width: 200,
-    fixed: 'right' as const,
+    fixed: 'right',
     render
 },
 {
+    title: 102,
     key: 102,
-    width: 200,
-    fixed: 'right' as const,
+    width: 220,
+    fixed: 'right',
     render
-}]);
-*/
-
-const dataSource: RecordType[] = [
-    {value: '123'},
-    {value: '333'},
-    {value: '444'},
-    {value: '555'},
-    {value: '666'},
-    {value: '777'}
-]
-
-for(var i = 0; i < 10000; i++) {
-    dataSource.push({value: i});
-}
+});
 
 function Sample() {
 
@@ -75,6 +71,7 @@ function Sample() {
 
         function updateSize() {
             setWindowSize([window.innerWidth, window.innerHeight]);
+            return;
             setTimeout(() => {
                 setColumns(columns => {
                     const newColumns = [...columns];
@@ -96,23 +93,30 @@ function Sample() {
     }, [setWindowSize]);
 
     return (
-        <ConfigProvider
-            //renderEmpty={() => '5555'}
-            locale={ru}
+        <div
+            style={{
+                position: 'relative',
+                width: windowSize[0] - 100
+            }}
         >
-            <VirtualTable<RecordType>
-                scroll={{x: windowSize[0], y: windowSize[1]}}
-                //locale={{
-                //    emptyText: "321"
-                //}}
-                rowHeight={50}
-                columns={columns}
-                //dataSource={dataSource}
-                dataSource={[]}
-                pagination={false}
-                bordered
-            />
-        </ConfigProvider>
+            <ConfigProvider
+                //renderEmpty={() => '5555'}
+                locale={ru}
+            >
+                <VirtualTable<RecordType>
+                    scroll={{x: windowSize[0] - 100, y: windowSize[1] - 500}}
+                    //locale={{
+                    //    emptyText: "321"
+                    //}}
+                    rowHeight={50}
+                    columns={columns}
+                    dataSource={dataSource}
+                    //dataSource={[]}
+                    pagination={false}
+                    bordered
+                />
+            </ConfigProvider>
+        </div>
     )
 }
 

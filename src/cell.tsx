@@ -1,12 +1,15 @@
 import equal from 'fast-deep-equal';
 import React, { memo } from 'react';
 
+export const columnRowClassName = "virtial-grid-item";
+
+export const defaultItemKey = <TData,>({ columnIndex, data, rowIndex }: { columnIndex: number, data: TData | undefined, rowIndex: number }) =>
+  `${rowIndex}:${columnIndex}`;
+
 import { classNames } from './helpers';
 import { VirtualTableItemProps } from './interfaces';
 
-export const columnRowClassName = "virtial-grid-item";
-
-export function VirtualTableItem<RecordType extends Record<any, any> = any>(props: VirtualTableItemProps<RecordType>) {
+export function VirtualTableCell<RecordType extends Record<any, any> = any>(props: VirtualTableItemProps<RecordType>) {
 
     const { style, column, data, originalColumnIndex, columnIndex, rowIndex, isScrolling } = props;
 
@@ -35,7 +38,7 @@ export function VirtualTableItem<RecordType extends Record<any, any> = any>(prop
     );
 }
 
-export const MemonableVirtualTableItem = memo(VirtualTableItem, (prevProps, nextProps) => {
+export const MemonableVirtualTableCell = memo(VirtualTableCell, (prevProps, nextProps) => {
 
     // system index
     if(prevProps.originalColumnIndex !== nextProps.originalColumnIndex

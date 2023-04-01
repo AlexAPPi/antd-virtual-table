@@ -18,6 +18,10 @@ export interface ColumnType<RecordType extends Record<any, any> = any> extends O
     shouldCellUpdate?: (record: RecordType | undefined, prevRecord: RecordType | undefined, isScrolling?: boolean) => boolean;
 }
 
+export interface Row<RecordType extends Record<any, any> = any> {
+    height?: number | (() => number)
+}
+
 export type ColumnsType<RecordType extends Record<any, any> = any> = ColumnType<RecordType>[];
 
 export interface GridChildComponentProps<RecordType extends Record<any, any> = any> extends InternalGridChildComponentProps<readonly RecordType[]> {

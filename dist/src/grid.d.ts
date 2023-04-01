@@ -20,13 +20,7 @@ export type InstanceProps = {
     lastMeasuredRowIndex: number;
     rowMetadataMap: ItemMetadataMap;
 };
-export interface IItemStyle {
-    position: React.CSSProperties['position'];
-    left: number | undefined;
-    right: number | undefined;
-    top: number;
-    height: number;
-    width: number;
+export interface IItemStyle extends React.CSSProperties {
 }
 export interface IGridProps<RecordType extends Record<any, any> = any> extends VariableSizeGridProps<readonly RecordType[]> {
     rerenderFixedColumnOnHorizontalScroll?: boolean;
@@ -36,17 +30,6 @@ export interface IGridProps<RecordType extends Record<any, any> = any> extends V
 }
 export type OnScrollProps = GridOnScrollProps;
 export type OnScrollCallback = (props: OnScrollProps) => void;
-export interface IGridState {
-    isScrolling: boolean;
-    scrollTop: number;
-    scrollLeft: number;
-}
-export interface IGridProps<RecordType extends Record<any, any> = any> extends VariableSizeGridProps<readonly RecordType[]> {
-    rerenderFixedColumnOnHorizontalScroll?: boolean;
-    scrollbarSize?: number;
-    itemData: readonly RecordType[];
-    columnGetter: columnGetter<RecordType>;
-}
 export interface IItemStyle {
     position: React.CSSProperties['position'];
     left: number | undefined;
@@ -73,6 +56,20 @@ export interface IResetAfterIndicesParams {
     rowIndex: number;
     shouldForceUpdate?: boolean | undefined;
 }
+export interface IGridState {
+    isScrolling: boolean;
+    scrollTop: number;
+    scrollLeft: number;
+}
+export interface IGridProps<RecordType extends Record<any, any> = any> extends VariableSizeGridProps<readonly RecordType[]> {
+    rerenderFixedColumnOnHorizontalScroll?: boolean;
+    rowClassName?: (record: RecordType, index: number) => string;
+    onRow?: (record: RecordType, index: number) => React.HTMLAttributes<HTMLDivElement>;
+    rowKey?: string | ((record: RecordType) => string);
+    scrollbarSize?: number;
+    itemData: readonly RecordType[];
+    columnGetter: columnGetter<RecordType>;
+}
 export declare class Grid<RecordType extends Record<any, any> = any> extends VariableSizeGrid<readonly RecordType[]> {
     props: IGridProps<RecordType>;
     state: Readonly<IGridState>;
@@ -92,7 +89,7 @@ export declare class Grid<RecordType extends Record<any, any> = any> extends Var
     private _lastFixedRenderedRowStopIndex;
     constructor(props: IGridProps<RecordType>);
     private _updateFixedColumnsVars;
-    _renderFixedColumns(rowStartIndex: number, rowStopIndex: number, update?: boolean): React.ReactElement[] | undefined;
+    _renderFixedColumns(rowStartIndex: number, rowStopIndex: number, update?: boolean): Record<string | number, [React.ReactElement<any, string | React.JSXElementConstructor<any>>[], React.ReactElement<any, string | React.JSXElementConstructor<any>>[]]>;
     scrollToItem({ align, rowIndex, columnIndex }: IScrollToItemParams): void;
     render(): React.ReactElement<any, string | React.JSXElementConstructor<any>>;
     componentDidUpdate(prevProps: IGridProps<RecordType>, prevState: IGridState, snapshot: any): void;

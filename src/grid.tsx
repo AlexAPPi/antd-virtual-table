@@ -2,7 +2,8 @@ import React, { createElement } from "react";
 import { Align, VariableSizeGrid, VariableSizeGridProps, GridOnScrollProps } from "react-window";
 import { ColumnType } from "./interfaces";
 import { getScrollbarSize } from "./domHelpers";
-import { classNames } from "./helpers";
+import { classNames, isFunction } from "./helpers";
+import { defaultItemKey } from "./cell";
 
 export type columnGetter<TRecord extends Record<any, any> = any> = (index: number) => ColumnType<TRecord>;
 export type itemSizeGetter = (index: number) => number;
@@ -26,13 +27,13 @@ export type InstanceProps = {
     rowMetadataMap: ItemMetadataMap,
 }
 
-export interface IItemStyle {
-    position: React.CSSProperties['position'],
-    left: number | undefined,
-    right: number | undefined,
-    top: number,
-    height: number,
-    width: number,
+export interface IItemStyle extends React.CSSProperties {
+    //position: React.CSSProperties['position'],
+    //left: number | undefined,
+    //right: number | undefined,
+    //top: number,
+    //height: number,
+    //width: number,
 }
 
 export interface IGridProps<RecordType extends Record<any, any> = any> extends VariableSizeGridProps<readonly RecordType[]> {
@@ -41,9 +42,6 @@ export interface IGridProps<RecordType extends Record<any, any> = any> extends V
     itemData: readonly RecordType[],
     columnGetter: columnGetter<RecordType>,
 }
-
-const defaultItemKey = <TData,>({ columnIndex, data, rowIndex }: { columnIndex: number, data: TData | undefined, rowIndex: number }) =>
-  `${rowIndex}:${columnIndex}`;
 
 const getItemMetadata = <TRecord extends Record<any, any> = any,>(
     itemType: ItemType,
@@ -288,27 +286,15 @@ const getColumnWidthOrCalculate = <TRecord extends Record<any, any> = any,>(
     instanceProps: InstanceProps
 ): number => getItemMetadata('column', props, index, instanceProps).size;
 
-const fixedRowClassName = "fixed-virtial-grid-row";
-const fixedRowLeftColumnsClassName = "fixed-virtial-grid-row-left-columns";
-const fixedRowRightColumnsClassName = "fixed-virtial-grid-row-right-columns";
-const hasFixedLeftColumnClassName = "has-fixed-left-column";
-const hasFixedRightColumnClassName = "has-fixed-right-column";
+const defaultRowClassName = "virtial-grid-row";
+const defaultFixedRowClassName = "fixed-virtial-grid-row-columns";
+const defaultFixedRowLeftColumnsClassName = "fixed-virtial-grid-row-left-columns";
+const defaultFixedRowRightColumnsClassName = "fixed-virtial-grid-row-right-columns";
+const defaultHasFixedLeftColumnClassName = "has-fixed-left-column";
+const defaultHasFixedRightColumnClassName = "has-fixed-right-column";
 
 export type OnScrollProps = GridOnScrollProps;
 export type OnScrollCallback = (props: OnScrollProps) => void;
-
-export interface IGridState {
-    isScrolling: boolean,
-    scrollTop: number,
-    scrollLeft: number,
-}
-
-export interface IGridProps<RecordType extends Record<any, any> = any> extends VariableSizeGridProps<readonly RecordType[]> {
-    rerenderFixedColumnOnHorizontalScroll?: boolean,
-    scrollbarSize?: number,
-    itemData: readonly RecordType[],
-    columnGetter: columnGetter<RecordType>,
-}
 
 export interface IItemStyle {
     position: React.CSSProperties['position'],
@@ -341,6 +327,22 @@ export interface IResetAfterIndicesParams {
     shouldForceUpdate?: boolean | undefined;
 }
 
+export interface IGridState {
+    isScrolling: boolean,
+    scrollTop: number,
+    scrollLeft: number,
+}
+
+export interface IGridProps<RecordType extends Record<any, any> = any> extends VariableSizeGridProps<readonly RecordType[]> {
+    rerenderFixedColumnOnHorizontalScroll?: boolean,
+    rowClassName?: (record: RecordType, index: number) => string,
+    onRow?: (record: RecordType, index: number) => React.HTMLAttributes<HTMLDivElement>;
+    rowKey?: string | ((record: RecordType) => string), 
+    scrollbarSize?: number,
+    itemData: readonly RecordType[],
+    columnGetter: columnGetter<RecordType>,
+}
+
 /*#if _BUILDLIB*/
 export class Grid<RecordType extends Record<any, any> = any> extends VariableSizeGrid<readonly RecordType[]> {
 
@@ -368,7 +370,7 @@ export class Grid<RecordType extends Record<any, any> = any> extends HackedGrid<
     /** может быть равен <b>props.columnCount</b>, когда нет фиксированных колонок справо */
     private _firstRightFixedColumn = 0;
 
-    private _lastFixedRenderedContent: React.ReactElement[] | undefined;
+    private _lastFixedRenderedContent: Record<number | string, [React.ReactElement[], React.ReactElement[]]> | undefined;
     private _lastFixedRenderedRowStartIndex: number | undefined;
     private _lastFixedRenderedRowStopIndex: number | undefined
 
@@ -417,103 +419,74 @@ export class Grid<RecordType extends Record<any, any> = any> extends HackedGrid<
         }
     }
 
-    _renderFixedColumns(rowStartIndex: number, rowStopIndex: number, update: boolean = false): React.ReactElement[] | undefined {
+    _renderFixedColumns(rowStartIndex: number, rowStopIndex: number, update: boolean = false) {
 
         const { rerenderFixedColumnOnHorizontalScroll, columnWidth, rowHeight } = this.props;
 
         if(rerenderFixedColumnOnHorizontalScroll === false
         && update === false
         && this._lastFixedRenderedRowStartIndex === rowStartIndex
-        && this._lastFixedRenderedRowStopIndex === rowStopIndex) {
+        && this._lastFixedRenderedRowStopIndex === rowStopIndex
+        && this._lastFixedRenderedContent) {
             return this._lastFixedRenderedContent;
         }
         
-        const { width, height, children, itemData, columnCount, useIsScrolling, itemKey = defaultItemKey, scrollbarSize = getScrollbarSize(), } = this.props;
+        const { children, itemData, columnCount, useIsScrolling, itemKey = defaultItemKey } = this.props;
         const { isScrolling } = this.state;
 
-        const estimatedTotalHeight = getEstimatedTotalHeight(
-            this.props,
-            this._instanceProps
-        );
-
-        const rows: React.ReactElement[] = [];
-        const rowWidth = estimatedTotalHeight >= height ? width - scrollbarSize : width;
+        const rows: typeof this._lastFixedRenderedContent = {};
         const shownRowsCount = rowStopIndex - rowStartIndex + 1;
     
         // нет смысла рендерить скрытые колонки
-        if(this._leftFixedColumnsWidth > 0 || this._rightFixedColumnsWidth > 0) {
+        if(this._leftFixedColumnsWidth > 0
+        || this._rightFixedColumnsWidth > 0) {
     
-            for (let visibleRowIndex = 0; visibleRowIndex < shownRowsCount; visibleRowIndex++) {
-    
+            for (
+                let visibleRowIndex = 0;
+                visibleRowIndex < shownRowsCount;
+                visibleRowIndex++
+            ) {
                 const rowLeftColumns: React.ReactElement[] = [];
                 const rowRightColumns: React.ReactElement[] = [];
                 const rowIndex = rowStartIndex + visibleRowIndex;
-
                 const height = rowHeight(rowIndex);
-                const marginTop = visibleRowIndex === 0 ? getRowOffset(this.props, rowIndex, this._instanceProps) : undefined;
-    
-                for (let columnIndex = 0; columnIndex < this._firstUnFixedColumn; columnIndex++) {
-    
+
+                const renderFixedColumn = (columnIndex: number) => {
+
                     const width = columnWidth(columnIndex);
-                    const item = createElement(children, {
+                    return createElement(children, {
                         key: itemKey({ columnIndex, data: itemData, rowIndex }),
                         rowIndex,
                         columnIndex,
                         data: itemData,
                         isScrolling: useIsScrolling ? isScrolling : undefined,
                         style: {
-                            marginLeft: visibleRowIndex === 0 ? 0 : undefined,
-                            marginTop: marginTop,
                             width: width,
                             height: height,
                         }
                     });
-    
+                }
+
+                for (
+                    let columnIndex = 0;
+                    columnIndex < this._firstUnFixedColumn;
+                    columnIndex++
+                ) {
+                    const item = renderFixedColumn(columnIndex);
                     rowLeftColumns.push(item);
                 }
 
-                for (let columnIndex = this._firstRightFixedColumn; columnIndex < columnCount; columnIndex++) {
-    
-                    const width = columnWidth(columnIndex);
-                    const item = createElement(children, {
-                        key: itemKey({ columnIndex, data: itemData, rowIndex }),
-                        rowIndex,
-                        columnIndex,
-                        data: itemData,
-                        isScrolling: useIsScrolling ? isScrolling : undefined,
-                        style: {
-                            marginLeft: visibleRowIndex === 0 ? 0 : undefined,
-                            marginTop: marginTop,
-                            width: width,
-                            height: height,
-                        }
-                    });
-    
+                for (
+                    let columnIndex = this._firstRightFixedColumn;
+                    columnIndex < columnCount;
+                    columnIndex++
+                ) {
+                    const item = renderFixedColumn(columnIndex);
                     rowRightColumns.push(item);
                 }
     
                 if (rowLeftColumns.length > 0 || rowRightColumns.length > 0) {
-    
-                    rows.push((
-                        <div
-                            key={`fixed-row-${rowIndex}`}
-                            row-index={rowIndex}
-                            className={fixedRowClassName}
-                            style={{
-                                width: rowWidth,
-                            }}
-                        >
-                            {rowLeftColumns.length > 0 &&
-                            <div className={fixedRowLeftColumnsClassName}>
-                                {rowLeftColumns}
-                            </div>}
-
-                            {rowRightColumns.length > 0 &&
-                            <div className={fixedRowRightColumnsClassName}>
-                                {rowRightColumns}
-                            </div>}
-                        </div>
-                    ));
+                    rows[rowIndex] = [rowLeftColumns, rowRightColumns];
                 }
             }
         }
@@ -588,65 +561,105 @@ export class Grid<RecordType extends Record<any, any> = any> extends HackedGrid<
     render() {
 
         const {
-            children,
             className,
             columnCount,
-            direction,
             height,
             innerRef,
             innerElementType,
             innerTagName,
-            itemData,
-            itemKey = defaultItemKey,
             outerElementType,
             outerTagName,
             rowCount,
+            direction,
             style,
+            width,
+
             useIsScrolling,
-            width
+            itemData,
+            rowClassName,
+            onRow,
+            children,
+            rowKey,
+            itemKey = defaultItemKey,
+
         } = this.props;
-    
+
         const { isScrolling } = this.state;
     
-        const [columnStartIndex, columnStopIndex, ] = this._getHorizontalRangeToRender();
-        const [rowStartIndex, rowStopIndex] = this._getVerticalRangeToRender();
-    
-        const items: (React.ReactElement | React.ReactElement[])[] = [];
+        const rowsColumns: Record<number | string, Record<number | string, React.ReactElement>> = {};
+        const rowsElementProps: Record<number | string, React.HTMLAttributes<HTMLDivElement> & { key: string }> = {};
 
-        if (columnCount > 0 && rowCount) {
+        let rowsFixedColumns: typeof this._lastFixedRenderedContent;
+
+        if(columnCount > 0
+        && rowCount > 0) {
+
+            const [columnStartIndex, columnStopIndex, ] = this._getHorizontalRangeToRender();
+            const [rowStartIndex, rowStopIndex] = this._getVerticalRangeToRender();
+
+            rowsFixedColumns = this._renderFixedColumns(rowStartIndex, rowStopIndex);
 
             for (
                 let rowIndex = rowStartIndex;
                 rowIndex <= rowStopIndex;
                 rowIndex++
             ) {
+                const record = itemData[rowIndex];
+                const className = rowClassName
+                                ? rowClassName(record, rowIndex)
+                                : undefined;
+                
+                const divProps = onRow
+                               ? onRow(record, rowIndex)
+                               : undefined;
+            
+                const key = isFunction(rowKey)
+                          ? rowKey(record)
+                          : rowKey ?? `${rowIndex}`;
+                
+                const firstItemStyle = this._getItemStyle(rowIndex, this._firstUnFixedColumn);
+                const firstUnFixedColumn = this._firstUnFixedColumn;
+                const firstRightFixedColumn = this._firstRightFixedColumn;
+                const rowColumns: Record<number, React.ReactElement> = [];
+
                 for (
                     let columnIndex = columnStartIndex;
                     columnIndex <= columnStopIndex;
                     columnIndex++
                 ) {
-                    if(columnIndex < this._firstUnFixedColumn
-                    || columnIndex > this._firstRightFixedColumn - 1) {
+                    
+                    if(columnIndex < firstUnFixedColumn
+                    || columnIndex > firstRightFixedColumn - 1) {
                         continue;
                     }
-
-                    items.push(
-                        createElement(children, {
-                            columnIndex,
-                            data: itemData,
-                            isScrolling: useIsScrolling ? isScrolling : undefined,
-                            key: itemKey({ columnIndex, data: itemData, rowIndex }),
-                            rowIndex,
-                            style: this._getItemStyle(rowIndex, columnIndex),
-                        })
-                    );
-                }
-            }
             
-            const rows = this._renderFixedColumns(rowStartIndex, rowStopIndex);
+                    const key = itemKey({ columnIndex, data: itemData, rowIndex });
+                    const style = this._getItemStyle(rowIndex, columnIndex);
 
-            if (rows) {
-                items.push(rows);
+                    rowColumns[columnIndex] = createElement(children, {
+                        columnIndex,
+                        data: itemData,
+                        isScrolling: useIsScrolling ? isScrolling : undefined,
+                        key: key,
+                        rowIndex,
+                        style: style,
+                    })
+                }
+                
+                rowsColumns[rowIndex] = rowColumns;
+                rowsElementProps[rowIndex] = {
+                    ...divProps,
+                    key: key,
+                    style: {
+                        ...divProps?.style,
+                        top: firstItemStyle.top
+                    },
+                    className: classNames(
+                        defaultRowClassName,
+                        className,
+                        divProps?.className
+                    )
+                }
             }
         }
     
@@ -660,7 +673,40 @@ export class Grid<RecordType extends Record<any, any> = any> extends HackedGrid<
             this.props,
             this._instanceProps
         );
-    
+
+        const rows = Object.entries(rowsElementProps).map(([rowIndex, props]) => {
+            
+            const rowFixedColumns = rowsFixedColumns ? rowsFixedColumns[rowIndex] : [];
+            const fixedLeftColumns = rowFixedColumns[0];
+            const fixedRightColumns = rowFixedColumns[1];
+            const {top, left, position } = props.style || {};
+
+            return (
+                <div
+                    {...props}
+                >
+                    {Object.values(rowsColumns[rowIndex])}
+                    <div
+                        className={defaultFixedRowClassName}
+                        style={{
+                            top: top,
+                            left: left,
+                            width: estimatedTotalWidth
+                        }}
+                    >
+                        {fixedLeftColumns?.length > 0 &&
+                        <div className={defaultFixedRowLeftColumnsClassName}>
+                            {fixedLeftColumns}
+                        </div>}
+                        {fixedRightColumns?.length > 0 &&
+                        <div className={defaultFixedRowRightColumnsClassName}>
+                            {fixedRightColumns}
+                        </div>}
+                    </div>
+                </div>
+            );
+        });
+
         const hasFixedLeftColumn  = this._leftFixedColumnsWidth > 0;
         const hasFixedRightColumn = this._rightFixedColumnsWidth > 0;
 
@@ -668,8 +714,8 @@ export class Grid<RecordType extends Record<any, any> = any> extends HackedGrid<
             outerElementType || outerTagName || 'div',
             {
                 className: classNames(className, {
-                    [hasFixedLeftColumnClassName]: hasFixedLeftColumn,
-                    [hasFixedRightColumnClassName]: hasFixedRightColumn
+                    [defaultHasFixedLeftColumnClassName]: hasFixedLeftColumn,
+                    [defaultHasFixedRightColumnClassName]: hasFixedRightColumn
                 }),
                 onScroll: this._onScroll,
                 ref: this._outerRefSetter,
@@ -685,7 +731,7 @@ export class Grid<RecordType extends Record<any, any> = any> extends HackedGrid<
                 },
             },
             createElement(innerElementType || innerTagName || 'div', {
-                children: items,
+                children: rows,
                 ref: innerRef,
                 style: {
                     height: estimatedTotalHeight,
