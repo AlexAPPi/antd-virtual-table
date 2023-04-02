@@ -349,8 +349,19 @@ export const VirtualTable = <RecordType extends Record<any, any>>(props: Virtual
                 </Grid>
             </div>
         );
-    }, [
-        
+
+    }, [fixStickyHeaderOffset,
+        rowHeightGetterByRecord,
+        rerenderFixedColumnOnHorizontalScroll,
+        normalizeIndexes,
+        normalizeColumns,
+        columns,
+        scroll.x,
+        scroll.y,
+        getColumn,
+        onScroll,
+        cellRender,
+        emptyNode
     ]);
 
     useEffect(
