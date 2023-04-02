@@ -1,6 +1,5 @@
 import React from "react";
 import { Align, VariableSizeGridProps, GridOnScrollProps } from "react-window";
-import { VariableSizeGrid } from './react-window-grid.js';
 import { ColumnType } from "./table";
 export type columnGetter<TRecord extends Record<any, any> = any> = (index: number) => ColumnType<TRecord>;
 export type itemSizeGetter = (index: number) => number;
@@ -63,6 +62,7 @@ export interface IGridProps<RecordType extends Record<any, any> = any> extends V
     itemData: readonly RecordType[];
     columnGetter: columnGetter<RecordType>;
 }
+import { VariableSizeGrid } from './react-window-grid-d';
 export declare class Grid<RecordType extends Record<any, any> = any> extends VariableSizeGrid<RecordType> {
     private _leftFixedColumnsWidth;
     private _rightFixedColumnsWidth;

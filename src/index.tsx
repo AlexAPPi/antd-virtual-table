@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import { ColumnsType, ColumnType, VirtualTable } from './table';
 import { ConfigProvider } from 'antd';
@@ -6,6 +6,7 @@ import { ConfigProvider } from 'antd';
 import ru from 'antd/locale/ru_RU';
 
 import './style.css';
+import { Grid } from './grid';
 
 type RecordType = {value: string | number};
 
@@ -63,11 +64,12 @@ defaultColumns.push({
 
 function Sample() {
 
+    const gridRef = useRef<Grid<any>>(null);
     const [columns, setColumns] = useState(defaultColumns);
     const [windowSize, setWindowSize] = useState([window.innerWidth, window.innerHeight]);
 
     useEffect(() => {
-
+        
         function updateSize() {
             setWindowSize([window.innerWidth, window.innerHeight]);
             return;
@@ -103,6 +105,7 @@ function Sample() {
                 locale={ru}
             >
                 <VirtualTable<RecordType>
+                    gridRef={gridRef}
                     scroll={{x: windowSize[0] - 100, y: windowSize[1] - 500}}
                     //locale={{
                     //    emptyText: "321"

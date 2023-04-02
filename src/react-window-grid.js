@@ -1,5 +1,3 @@
-import { VariableSizeGrid as OriginalVariableSizeGrid } from "react-window";
-
-export class VariableSizeGrid extends OriginalVariableSizeGrid {}
-
+import { VariableSizeGrid } from "react-window";
+export { VariableSizeGrid }
 export default VariableSizeGrid

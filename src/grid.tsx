@@ -3,7 +3,6 @@ import { Align, VariableSizeGridProps, GridOnScrollProps } from "react-window";
 import { getScrollbarSize } from "./dom-helpers";
 import { classNames, isFunction } from "./helpers";
 import { defaultItemKey } from "./cell";
-import { VariableSizeGrid } from './react-window-grid.js';
 import { ColumnType } from "./table";
 import { getEstimatedTotalHeight, getEstimatedTotalWidth, getOffsetForColumnAndAlignment, getOffsetForRowAndAlignment } from './grid-helpers';
 
@@ -85,6 +84,12 @@ export interface IGridProps<RecordType extends Record<any, any> = any> extends V
     itemData: readonly RecordType[],
     columnGetter: columnGetter<RecordType>,
 }
+
+/*#if _BUILDLIB*/
+import { VariableSizeGrid } from './react-window-grid-d';
+//#else*/
+//import { VariableSizeGrid } from './react-window-grid.js';
+//#endif
 
 export class Grid<RecordType extends Record<any, any> = any> extends VariableSizeGrid<RecordType> {
 
