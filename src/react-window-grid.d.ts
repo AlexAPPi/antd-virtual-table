@@ -1,7 +1,7 @@
-import { VariableSizeGrid } from "react-window";
-import { IGridProps, IGridState, IItemStyle, InstanceProps, ScrollEvent } from '../grid';
+import { VariableSizeGrid as OriginalVariableSizeGrid } from "react-window";
+import { IGridProps, IGridState, IItemStyle, InstanceProps, ScrollEvent } from './grid';
 
-export class HackedGrid<RecordType extends Record<any, any> = any> extends VariableSizeGrid<readonly RecordType[]> {
+export class VariableSizeGrid<RecordType extends Record<any, any> = any> extends OriginalVariableSizeGrid<readonly RecordType[]> {
     
     public props: IGridProps<RecordType>;
     public state: Readonly<IGridState>;
@@ -14,3 +14,5 @@ export class HackedGrid<RecordType extends Record<any, any> = any> extends Varia
     protected _outerRefSetter: (ref: React.Ref<HTMLElement>) => void;
     protected _onScroll: (event: ScrollEvent) => void;
 }
+
+export default VariableSizeGrid

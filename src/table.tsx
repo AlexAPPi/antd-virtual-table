@@ -1,10 +1,9 @@
 import React, { Ref, useEffect } from 'react';
-import { ConfigProvider, Empty, Table, TableProps } from 'antd';
+import { ConfigProvider, Empty, Table, TableProps, TableColumnType as AntdTableColumnType } from 'antd';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { Grid, OnScrollCallback, OnScrollProps } from './grid';
 import { assignRef, classNames, isFunction, refSetter, sumColumnWidths, sumRowsHeights } from './helpers';
-import { MemonableVirtualTableCell } from './cell';
-import { ColumnsType, GridChildComponentProps, ScrollConfig } from './interfaces';
+import { GridChildComponentProps, MemonableVirtualTableCell } from './cell';
 import { TableComponents } from 'rc-table/lib/interface';
 
 import './style.css';
@@ -22,7 +21,24 @@ export interface Info {
     }) => void;
 }
 
-export type ColumnType = 'fixed-left' | 'fixed-right' | 'common';
+export interface ScrollViewSize {
+    x: number,
+    y: number
+}
+
+export interface ScrollConfig extends ScrollViewSize {
+    scrollToFirstRowOnChange?: boolean;
+}
+
+export interface ColumnType<RecordType extends Record<any, any> = any> extends Omit<AntdTableColumnType<RecordType>, "width" | "shouldCellUpdate" | "onCell" | "render"> {
+    overlap?: number,
+    width: number,
+    onCell?: (data: RecordType | undefined, index?: number, isScrolling?: boolean) => React.HTMLAttributes<any> | React.TdHTMLAttributes<any>;
+    render?: (value: any, record: RecordType | undefined, index: number, isScrolling?: boolean) => React.ReactNode;
+    shouldCellUpdate?: (record: RecordType | undefined, prevRecord: RecordType | undefined, isScrolling?: boolean) => boolean;
+}
+
+export type ColumnsType<RecordType extends Record<any, any> = any> = ColumnType<RecordType>[];
 
 export type VirtualTableComponents<RecordType> = Omit<TableComponents<RecordType>, "body">;
 
@@ -255,7 +271,7 @@ export const VirtualTable = <RecordType extends Record<any, any>>(props: Virtual
 
     }, [locale?.emptyText, renderEmpty]);
 
-    const bodyRender = (rawData: readonly RecordType[], info: Info) => {
+    const bodyRender = useCallback((rawData: readonly RecordType[], info: Info) => {
 
         const { ref, scrollbarSize, onScroll: tableOnScroll } = info;
 
@@ -333,7 +349,9 @@ export const VirtualTable = <RecordType extends Record<any, any>>(props: Virtual
                 </Grid>
             </div>
         );
-    }
+    }, [
+        
+    ]);
 
     useEffect(
         () => fixStickyHeaderOffset(tableRef.current),

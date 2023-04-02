@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client';
-import { VirtualTable } from './table';
-import { ColumnsType, ColumnType } from './interfaces';
+import { ColumnsType, ColumnType, VirtualTable } from './table';
 import { ConfigProvider } from 'antd';
 
 import ru from 'antd/locale/ru_RU';

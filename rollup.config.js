@@ -1,12 +1,11 @@
 import { createRequire } from "module";
-import { terser } from "rollup-plugin-minification";
-import peerDepsExternal from 'rollup-plugin-peer-deps-external';
+import terser from "@rollup/plugin-terser";
 import resolve from "@rollup/plugin-node-resolve";
 import typescript from "@rollup/plugin-typescript";
+import peerDepsExternal from 'rollup-plugin-peer-deps-external';
 import del from "rollup-plugin-delete";
 import commonjs from "@rollup/plugin-commonjs";
 import importCss from 'rollup-plugin-import-css';
-import jscc from 'rollup-plugin-jscc';
 
 const require = createRequire(import.meta.url);
 const packageJson = require("./package.json");
@@ -22,21 +21,25 @@ export default [
             },
         ],
         plugins: [
-            del({
-                targets: ['dist/*', 'build/*']
-            }),
-            //jscc({values: { _BUILDLIB: 1 }}),
+            del({ targets: ['dist/*', 'build/*']}),
             peerDepsExternal(),
             resolve(),
             commonjs(),
-            //sourcemaps(),
-            typescript({ tsconfig: "./tsconfig.json" }),
-            importCss({
-                extract: true,
-                minify: true
+            typescript({
+                tsconfig: "./tsconfig.json",
+                sourceMap: true,
+                inlineSources: true,
+                exclude: [
+                    "./src/index.tsx", // react-scripts debug file
+                ]
             }),
-            terser(),
+            importCss({
+                output: packageJson.style,
+                extract: true,
+                minify: true,
+            }),
+            terser({ sourceMap: true }),
         ],
         external: ["react", "react-dom", "antd", "styled-components"]
-    },
+    }
 ];

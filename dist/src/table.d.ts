@@ -1,7 +1,6 @@
 import React, { Ref } from 'react';
-import { TableProps } from 'antd';
+import { TableProps, TableColumnType as AntdTableColumnType } from 'antd';
 import { Grid, OnScrollCallback } from './grid';
-import { ColumnsType, ScrollConfig } from './interfaces';
 import { TableComponents } from 'rc-table/lib/interface';
 import './style.css';
 export interface InfoRef {
@@ -15,7 +14,21 @@ export interface Info {
         scrollLeft?: number;
     }) => void;
 }
-export type ColumnType = 'fixed-left' | 'fixed-right' | 'common';
+export interface ScrollViewSize {
+    x: number;
+    y: number;
+}
+export interface ScrollConfig extends ScrollViewSize {
+    scrollToFirstRowOnChange?: boolean;
+}
+export interface ColumnType<RecordType extends Record<any, any> = any> extends Omit<AntdTableColumnType<RecordType>, "width" | "shouldCellUpdate" | "onCell" | "render"> {
+    overlap?: number;
+    width: number;
+    onCell?: (data: RecordType | undefined, index?: number, isScrolling?: boolean) => React.HTMLAttributes<any> | React.TdHTMLAttributes<any>;
+    render?: (value: any, record: RecordType | undefined, index: number, isScrolling?: boolean) => React.ReactNode;
+    shouldCellUpdate?: (record: RecordType | undefined, prevRecord: RecordType | undefined, isScrolling?: boolean) => boolean;
+}
+export type ColumnsType<RecordType extends Record<any, any> = any> = ColumnType<RecordType>[];
 export type VirtualTableComponents<RecordType> = Omit<TableComponents<RecordType>, "body">;
 export interface VirtualTableProps<RecordType extends Record<any, any>> extends Omit<TableProps<RecordType>, "columns" | "scroll" | "components"> {
     components?: VirtualTableComponents<RecordType>;

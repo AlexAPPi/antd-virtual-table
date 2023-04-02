@@ -26,6 +26,7 @@
     "declaration": true,
     "declarationDir": "src",
     "declarationMap": true,
+    "inlineSources": true,
     "sourceMap": true,
     "sourceRoot": "src"
   },

@@ -3,7 +3,7 @@ import { render } from 'react-dom';
 import { Simulate } from 'react-dom/test-utils';
 import ReactTestRenderer from 'react-test-renderer';
 import { VariableSizeGrid } from '../bundle';
-import * as domHelpers from '../domHelpers';
+import * as domHelpers from '../dom-helpers';
 
 const simulateScroll = (instance, { scrollLeft, scrollTop }) => {
   instance._outerRef.scrollLeft = scrollLeft;

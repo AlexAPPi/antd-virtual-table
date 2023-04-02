@@ -1,9 +1,11 @@
 import React, { createElement } from "react";
-import { Align, VariableSizeGrid, VariableSizeGridProps, GridOnScrollProps } from "react-window";
-import { ColumnType } from "./interfaces";
-import { getScrollbarSize } from "./domHelpers";
+import { Align, VariableSizeGridProps, GridOnScrollProps } from "react-window";
+import { getScrollbarSize } from "./dom-helpers";
 import { classNames, isFunction } from "./helpers";
 import { defaultItemKey } from "./cell";
+import { VariableSizeGrid } from './react-window-grid.js';
+import { ColumnType } from "./table";
+import { getEstimatedTotalHeight, getEstimatedTotalWidth, getOffsetForColumnAndAlignment, getOffsetForRowAndAlignment } from './grid-helpers';
 
 export type columnGetter<TRecord extends Record<any, any> = any> = (index: number) => ColumnType<TRecord>;
 export type itemSizeGetter = (index: number) => number;
@@ -28,263 +30,13 @@ export type InstanceProps = {
 }
 
 export interface IItemStyle extends React.CSSProperties {
-    //position: React.CSSProperties['position'],
-    //left: number | undefined,
-    //right: number | undefined,
-    //top: number,
-    //height: number,
-    //width: number,
+    position: React.CSSProperties['position'],
+    left: number,
+    right: number,
+    top: number,
+    height: number,
+    width: number,
 }
-
-export interface IGridProps<RecordType extends Record<any, any> = any> extends VariableSizeGridProps<readonly RecordType[]> {
-    rerenderFixedColumnOnHorizontalScroll?: boolean,
-    scrollbarSize?: number,
-    itemData: readonly RecordType[],
-    columnGetter: columnGetter<RecordType>,
-}
-
-const getItemMetadata = <TRecord extends Record<any, any> = any,>(
-    itemType: ItemType,
-    props: Grid<TRecord>['props'],
-    index: number,
-    instanceProps: InstanceProps
-): ItemMetadata => {
-
-    let itemMetadataMap: ItemMetadataMap, itemSize: itemSizeGetter, lastMeasuredIndex: number;
-
-    if (itemType === 'column') {
-        itemMetadataMap = instanceProps.columnMetadataMap;
-        itemSize = props.columnWidth;
-        lastMeasuredIndex = instanceProps.lastMeasuredColumnIndex;
-    } else {
-        itemMetadataMap = instanceProps.rowMetadataMap;
-        itemSize = props.rowHeight;
-        lastMeasuredIndex = instanceProps.lastMeasuredRowIndex;
-    }
-  
-    if (index > lastMeasuredIndex) {
-
-        let offset = 0;
-
-        if (lastMeasuredIndex >= 0) {
-            const itemMetadata = itemMetadataMap[lastMeasuredIndex];
-            offset = itemMetadata.offset + itemMetadata.size;
-        }
-  
-        for (let i = lastMeasuredIndex + 1; i <= index; i++) {
-
-            let size = itemSize(i);
-  
-            itemMetadataMap[i] = {
-                offset,
-                size,
-            };
-  
-            offset += size;
-        }
-  
-        if (itemType === 'column') {
-            instanceProps.lastMeasuredColumnIndex = index;
-        } else {
-            instanceProps.lastMeasuredRowIndex = index;
-        }
-    }
-
-    return itemMetadataMap[index];
-}
-
-const getEstimatedTotalHeight = <TRecord extends Record<any, any> = any,>(
-    { rowCount }: Grid<TRecord>['props'],
-    { rowMetadataMap, estimatedRowHeight, lastMeasuredRowIndex }: InstanceProps
-) => {
-    let totalSizeOfMeasuredRows = 0;
-  
-    // Edge case check for when the number of items decreases while a scroll is in progress.
-    // https://github.com/bvaughn/react-window/pull/138
-    if (lastMeasuredRowIndex >= rowCount) {
-        lastMeasuredRowIndex = rowCount - 1;
-    }
-  
-    if (lastMeasuredRowIndex >= 0) {
-        const itemMetadata = rowMetadataMap[lastMeasuredRowIndex];
-        totalSizeOfMeasuredRows = itemMetadata.offset + itemMetadata.size;
-    }
-  
-    const numUnmeasuredItems = rowCount - lastMeasuredRowIndex - 1;
-    const totalSizeOfUnmeasuredItems = numUnmeasuredItems * estimatedRowHeight;
-  
-    return totalSizeOfMeasuredRows + totalSizeOfUnmeasuredItems;
-};
-
-const getEstimatedTotalWidth = <TRecord extends Record<any, any> = any,>(
-    { columnCount }: Grid<TRecord>['props'],
-    {
-        columnMetadataMap,
-        estimatedColumnWidth,
-        lastMeasuredColumnIndex,
-    }: InstanceProps
-) => {
-    let totalSizeOfMeasuredRows = 0;
-  
-    // Edge case check for when the number of items decreases while a scroll is in progress.
-    // https://github.com/bvaughn/react-window/pull/138
-    if (lastMeasuredColumnIndex >= columnCount) {
-        lastMeasuredColumnIndex = columnCount - 1;
-    }
-  
-    if (lastMeasuredColumnIndex >= 0) {
-        const itemMetadata = columnMetadataMap[lastMeasuredColumnIndex];
-        totalSizeOfMeasuredRows = itemMetadata.offset + itemMetadata.size;
-    }
-  
-    const numUnmeasuredItems = columnCount - lastMeasuredColumnIndex - 1;
-    const totalSizeOfUnmeasuredItems = numUnmeasuredItems * estimatedColumnWidth;
-
-    return totalSizeOfMeasuredRows + totalSizeOfUnmeasuredItems;
-};
-
-const getOffsetForIndexAndAlignment = <TRecord extends Record<any, any> = any,>(
-    itemType: ItemType,
-    props: Grid<TRecord>['props'],
-    index: number,
-    align: Align | undefined,
-    scrollOffset: number,
-    instanceProps: InstanceProps,
-    scrollbarSize: number,
-    sumOfLeftFixedColumnsWidth: number,
-    sumOfRightFixedColumnsWidth: number,
-  ): number => {
-
-    const leftOffset = itemType === 'column' ? sumOfLeftFixedColumnsWidth : 0;
-    const rightOffset = itemType === 'column' ? sumOfRightFixedColumnsWidth : 0;
-    const size = itemType === 'column' ? props.width : props.height;
-    const itemMetadata = getItemMetadata(itemType, props, index, instanceProps);
-
-    // Get estimated total size after ItemMetadata is computed,
-    // To ensure it reflects actual measurements instead of just estimates.
-    const estimatedTotalSize =
-        itemType === 'column'
-            ? getEstimatedTotalWidth(props, instanceProps)
-            : getEstimatedTotalHeight(props, instanceProps);
-
-    const maxOffset = Math.max(
-        0,
-        Math.min(estimatedTotalSize - size + leftOffset, itemMetadata.offset - leftOffset)
-    );
-
-    const minOffset = Math.max(
-        0,
-        itemMetadata.offset + itemMetadata.size - size + rightOffset + scrollbarSize
-    );
-
-    if (align === 'smart') {
-
-        if (
-            scrollOffset >= minOffset - size &&
-            scrollOffset <= maxOffset + size
-        ) {
-            align = 'auto';
-        } else {
-            align = 'center';
-        }
-    }
-
-    switch (align) {
-        case 'start':
-            return maxOffset;
-        case 'end':
-            return minOffset;
-        case 'center':
-            return Math.round(minOffset + (maxOffset - minOffset) / 2);
-        case 'auto':
-        default:
-            if (scrollOffset >= minOffset && scrollOffset <= maxOffset) {
-                return scrollOffset;
-            } else if (minOffset > maxOffset) {
-                // Because we only take into account the scrollbar size when calculating minOffset
-                // this value can be larger than maxOffset when at the end of the list
-                return minOffset;
-            } else if (scrollOffset < minOffset) {
-                return minOffset;
-            } else {
-                return maxOffset;
-            }
-    }
-}
-
-const getOffsetForColumnAndAlignment = <TRecord extends Record<any, any> = any,>(
-    props: Grid<TRecord>['props'],
-    index: number,
-    align: Align | undefined,
-    scrollOffset: number,
-    instanceProps: InstanceProps,
-    scrollbarSize: number,
-    sumOfLeftFixedColumnsWidth: number,
-    sumOfRightFixedColumnsWidth: number,
-): number =>
-    getOffsetForIndexAndAlignment(
-        'column',
-        props,
-        index,
-        align,
-        scrollOffset,
-        instanceProps,
-        scrollbarSize,
-        sumOfLeftFixedColumnsWidth,
-        sumOfRightFixedColumnsWidth
-    )
-
-const getOffsetForRowAndAlignment = <TRecord extends Record<any, any> = any,>(
-    props: Grid<TRecord>['props'],
-    index: number,
-    align: Align | undefined,
-    scrollOffset: number,
-    instanceProps: InstanceProps,
-    scrollbarSize: number,
-    sumOfLeftFixedColumnsWidth: number,
-    sumOfRightFixedColumnsWidth: number,
-): number =>
-    getOffsetForIndexAndAlignment(
-        'row',
-        props,
-        index,
-        align,
-        scrollOffset,
-        instanceProps,
-        scrollbarSize,
-        sumOfLeftFixedColumnsWidth,
-        sumOfRightFixedColumnsWidth
-    )
-
-const getRowOffset = <TRecord extends Record<any, any> = any,>(
-    props: Grid<TRecord>['props'],
-    index: number,
-    instanceProps: InstanceProps
-): number => getItemMetadata('row', props, index, instanceProps).offset;
-
-const getRowHeightOrCalculate = <TRecord extends Record<any, any> = any,>(
-    props: Grid<TRecord>['props'],
-    index: number,
-    instanceProps: InstanceProps
-): number => getItemMetadata('row', props, index, instanceProps).size;
-
-const getRowHeight = <TRecord extends Record<any, any> = any,>(
-    props: Grid<TRecord>['props'],
-    index: number,
-    instanceProps: InstanceProps
-): number => instanceProps.rowMetadataMap[index].size;
-
-const getColumnWidth = <TRecord extends Record<any, any> = any,>(
-    props: Grid<TRecord>['props'],
-    index: number,
-    instanceProps: InstanceProps
-): number => instanceProps.columnMetadataMap[index].size;
-
-const getColumnWidthOrCalculate = <TRecord extends Record<any, any> = any,>(
-    props: Grid<TRecord>['props'],
-    index: number,
-    instanceProps: InstanceProps
-): number => getItemMetadata('column', props, index, instanceProps).size;
 
 const defaultRowClassName = "virtial-grid-row";
 const defaultFixedRowClassName = "fixed-virtial-grid-row-columns";
@@ -295,15 +47,6 @@ const defaultHasFixedRightColumnClassName = "has-fixed-right-column";
 
 export type OnScrollProps = GridOnScrollProps;
 export type OnScrollCallback = (props: OnScrollProps) => void;
-
-export interface IItemStyle {
-    position: React.CSSProperties['position'],
-    left: number | undefined,
-    right: number | undefined,
-    top: number,
-    height: number,
-    width: number,
-}
 
 export interface IGrid<RecordType extends Record<any, any> = any> extends Omit<VariableSizeGrid<readonly RecordType[]>, 'props' | 'state'> {
     props: IGridProps<RecordType>;
@@ -343,24 +86,7 @@ export interface IGridProps<RecordType extends Record<any, any> = any> extends V
     columnGetter: columnGetter<RecordType>,
 }
 
-/*#if _BUILDLIB*/
-export class Grid<RecordType extends Record<any, any> = any> extends VariableSizeGrid<readonly RecordType[]> {
-
-    declare props: IGridProps<RecordType>;
-    declare state: Readonly<IGridState>;
-
-    declare private _instanceProps: InstanceProps;
-
-    declare private _getHorizontalRangeToRender: () => [number, number];
-    declare private _getVerticalRangeToRender: () => [number, number];
-    declare private _getItemStyle: (rowIndex: number, columnIndex: number) => IItemStyle;
-    declare private _outerRefSetter: (ref: any) => void;
-    declare private _onScroll: (event: ScrollEvent) => void;
-    
-/*#else
-import { HackedGrid } from './hacked/grid.js';
-export class Grid<RecordType extends Record<any, any> = any> extends HackedGrid<RecordType> {
-//#endif*/
+export class Grid<RecordType extends Record<any, any> = any> extends VariableSizeGrid<RecordType> {
 
     private _leftFixedColumnsWidth = 0;
     private _rightFixedColumnsWidth = 0;
@@ -643,7 +369,7 @@ export class Grid<RecordType extends Record<any, any> = any> extends HackedGrid<
                         key: key,
                         rowIndex,
                         style: style,
-                    })
+                    });
                 }
                 
                 rowsColumns[rowIndex] = rowColumns;
@@ -676,16 +402,17 @@ export class Grid<RecordType extends Record<any, any> = any> extends HackedGrid<
 
         const rows = Object.entries(rowsElementProps).map(([rowIndex, props]) => {
             
+            const { top, left } = props.style || {};
             const rowFixedColumns = rowsFixedColumns ? rowsFixedColumns[rowIndex] : [];
             const fixedLeftColumns = rowFixedColumns[0];
             const fixedRightColumns = rowFixedColumns[1];
-            const {top, left, position } = props.style || {};
+            const columns = Object.values(rowsColumns[rowIndex]);
 
             return (
                 <div
                     {...props}
                 >
-                    {Object.values(rowsColumns[rowIndex])}
+                    {columns}
                     <div
                         className={defaultFixedRowClassName}
                         style={{
@@ -694,11 +421,11 @@ export class Grid<RecordType extends Record<any, any> = any> extends HackedGrid<
                             width: estimatedTotalWidth
                         }}
                     >
-                        {fixedLeftColumns?.length > 0 &&
+                        {fixedLeftColumns && fixedLeftColumns.length > 0 &&
                         <div className={defaultFixedRowLeftColumnsClassName}>
                             {fixedLeftColumns}
                         </div>}
-                        {fixedRightColumns?.length > 0 &&
+                        {fixedRightColumns && fixedRightColumns.length > 0 &&
                         <div className={defaultFixedRowRightColumnsClassName}>
                             {fixedRightColumns}
                         </div>}

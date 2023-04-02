@@ -1,6 +1,7 @@
 import React from "react";
-import { Align, VariableSizeGrid, VariableSizeGridProps, GridOnScrollProps } from "react-window";
-import { ColumnType } from "./interfaces";
+import { Align, VariableSizeGridProps, GridOnScrollProps } from "react-window";
+import { VariableSizeGrid } from './react-window-grid.js';
+import { ColumnType } from "./table";
 export type columnGetter<TRecord extends Record<any, any> = any> = (index: number) => ColumnType<TRecord>;
 export type itemSizeGetter = (index: number) => number;
 export type ItemType = 'column' | 'row';
@@ -21,23 +22,15 @@ export type InstanceProps = {
     rowMetadataMap: ItemMetadataMap;
 };
 export interface IItemStyle extends React.CSSProperties {
-}
-export interface IGridProps<RecordType extends Record<any, any> = any> extends VariableSizeGridProps<readonly RecordType[]> {
-    rerenderFixedColumnOnHorizontalScroll?: boolean;
-    scrollbarSize?: number;
-    itemData: readonly RecordType[];
-    columnGetter: columnGetter<RecordType>;
-}
-export type OnScrollProps = GridOnScrollProps;
-export type OnScrollCallback = (props: OnScrollProps) => void;
-export interface IItemStyle {
     position: React.CSSProperties['position'];
-    left: number | undefined;
-    right: number | undefined;
+    left: number;
+    right: number;
     top: number;
     height: number;
     width: number;
 }
+export type OnScrollProps = GridOnScrollProps;
+export type OnScrollCallback = (props: OnScrollProps) => void;
 export interface IGrid<RecordType extends Record<any, any> = any> extends Omit<VariableSizeGrid<readonly RecordType[]>, 'props' | 'state'> {
     props: IGridProps<RecordType>;
     state: Readonly<IGridState>;
@@ -70,15 +63,7 @@ export interface IGridProps<RecordType extends Record<any, any> = any> extends V
     itemData: readonly RecordType[];
     columnGetter: columnGetter<RecordType>;
 }
-export declare class Grid<RecordType extends Record<any, any> = any> extends VariableSizeGrid<readonly RecordType[]> {
-    props: IGridProps<RecordType>;
-    state: Readonly<IGridState>;
-    private _instanceProps;
-    private _getHorizontalRangeToRender;
-    private _getVerticalRangeToRender;
-    private _getItemStyle;
-    private _outerRefSetter;
-    private _onScroll;
+export declare class Grid<RecordType extends Record<any, any> = any> extends VariableSizeGrid<RecordType> {
     private _leftFixedColumnsWidth;
     private _rightFixedColumnsWidth;
     private _firstUnFixedColumn;

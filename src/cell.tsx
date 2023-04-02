@@ -1,15 +1,23 @@
 import equal from 'fast-deep-equal';
 import React, { memo } from 'react';
+import { GridChildComponentProps as OriginalGridChildComponentProps } from 'react-window';
+import { classNames } from './helpers';
+import { ColumnType } from './table';
 
 export const columnRowClassName = "virtial-grid-item";
 
 export const defaultItemKey = <TData,>({ columnIndex, data, rowIndex }: { columnIndex: number, data: TData | undefined, rowIndex: number }) =>
   `${rowIndex}:${columnIndex}`;
 
-import { classNames } from './helpers';
-import { VirtualTableItemProps } from './interfaces';
+export interface GridChildComponentProps<RecordType extends Record<any, any> = any> extends OriginalGridChildComponentProps<readonly RecordType[]> {
+}
 
-export function VirtualTableCell<RecordType extends Record<any, any> = any>(props: VirtualTableItemProps<RecordType>) {
+export interface VirtualTableCellProps<RecordType extends Record<any, any> = any> extends GridChildComponentProps<RecordType> {
+    originalColumnIndex: number,
+    column: ColumnType<RecordType>
+}
+
+export function VirtualTableCell<RecordType extends Record<any, any> = any>(props: VirtualTableCellProps<RecordType>) {
 
     const { style, column, data, originalColumnIndex, columnIndex, rowIndex, isScrolling } = props;
 
