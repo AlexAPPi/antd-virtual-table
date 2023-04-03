@@ -166,7 +166,9 @@ export const VirtualTable = <RecordType extends Record<any, any>>(props: Virtual
             }
         }
         
-    }, [scroll.x, scroll.y, scroll.scrollToFirstRowOnChange, components?.header, showHeader]);
+    }, [components?.header,
+        showHeader
+    ]);
 
     const reset = useCallback((columnIndex: number = 0, rowIndex: number = 0) => {
 
@@ -275,8 +277,9 @@ export const VirtualTable = <RecordType extends Record<any, any>>(props: Virtual
 
         const { ref, scrollbarSize, onScroll: tableOnScroll } = info;
 
-        fixStickyHeaderOffset(tableRef.current);
         assignRef(connectObject, ref);
+
+        fixStickyHeaderOffset(tableRef.current);
 
         const rowHeightGetter = (index: number) => rowHeightGetterByRecord(rawData[index]);
 
@@ -310,7 +313,7 @@ export const VirtualTable = <RecordType extends Record<any, any>>(props: Virtual
         const totalWidth  = sumColumnWidths(columnWidthGetter, normalizeColumns.length - 1);
 
         const handleScroll = (props: OnScrollProps) => {
-    
+
             if(tableOnScroll) {
                 tableOnScroll({
                     scrollLeft: props.scrollLeft
@@ -329,8 +332,8 @@ export const VirtualTable = <RecordType extends Record<any, any>>(props: Virtual
                 {!hasData && emptyNode}
                 <Grid<RecordType>
                     useIsScrolling
-                    ref={refSetter(gridRef)}
-                    outerRef={outerGridRef}
+                    ref={refSetter(gridRef, internalGridRef)}
+                    outerRef={refSetter(outerGridRef)}
                     className="virtual-grid"
                     rerenderFixedColumnOnHorizontalScroll={rerenderFixedColumnOnHorizontalScroll}
                     estimatedColumnWidth={totalWidth / normalizeColumns.length}
@@ -364,10 +367,16 @@ export const VirtualTable = <RecordType extends Record<any, any>>(props: Virtual
         emptyNode
     ]);
 
-    useEffect(
-        () => fixStickyHeaderOffset(tableRef.current),
-        [fixStickyHeaderOffset, columns, showHeader, components?.header]
-    );
+    useEffect(() => {
+        fixStickyHeaderOffset(tableRef.current)
+    }, [fixStickyHeaderOffset,
+        scroll.x,
+        scroll.y,
+        scroll.scrollToFirstRowOnChange,
+        columns,
+        showHeader,
+        components?.header
+    ]);
 
     return (
         <Table<RecordType>
