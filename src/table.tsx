@@ -199,7 +199,11 @@ export const VirtualTable = <RecordType extends Record<any, any>>(props: Virtual
             reset();
         }
 
-    }, [scroll.scrollToFirstRowOnChange, onChange, reset, fixStickyHeaderOffset]);
+    }, [scroll.scrollToFirstRowOnChange,
+        onChange,
+        reset,
+        fixStickyHeaderOffset
+    ]);
 
     const [normalizeColumns, normalizeIndexes, getColumn, cellRender] = useMemo(() => {
 
@@ -271,7 +275,9 @@ export const VirtualTable = <RecordType extends Record<any, any>>(props: Virtual
             </div>
         )
 
-    }, [locale?.emptyText, renderEmpty]);
+    }, [locale?.emptyText,
+        renderEmpty
+    ]);
 
     const bodyRender = useCallback((rawData: readonly RecordType[], info: Info) => {
 
