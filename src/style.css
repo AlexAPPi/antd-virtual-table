@@ -60,8 +60,8 @@
     background: #fff;
 }
 
-.virtial-grid-row:first-child .virtial-grid-item {
-    border-top: none;
+.virtial-grid-row:last-child .virtial-grid-item {
+    border-bottom: 1px solid #f0f0f0;
 }
 
 .ant-table.ant-table-bordered .virtial-grid-item {
