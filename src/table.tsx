@@ -104,7 +104,7 @@ export const VirtualTable = <RecordType extends Record<any, any>>(props: Virtual
         }
     });
 
-    const fixStickyHeaderOffset = useCallback((tableWrap?: HTMLElement | null) => {
+    const fixStickyHeaderOffset = useCallback((tableWrap?: HTMLElement | null, maxWidth: number = -1) => {
 
         // Данная функция нужна для поддержки overlap свойства колонки
         // Исправляем смещение для sticky колонок
@@ -131,7 +131,9 @@ export const VirtualTable = <RecordType extends Record<any, any>>(props: Virtual
                 }
 
                 // TODO: Возможно пользователь задал свое значение, тут надо подумать...
-                header.style.maxWidth = `${totalWidth}px`;
+                header.style.maxWidth = maxWidth === -1 
+                                    ? `${totalWidth}px`
+                                    : `${maxWidth}px`;
 
                 let leftOffset = 0;
                 let rightOffset = 0;
@@ -285,8 +287,6 @@ export const VirtualTable = <RecordType extends Record<any, any>>(props: Virtual
 
         assignRef(connectObject, ref);
 
-        fixStickyHeaderOffset(tableRef.current);
-
         const rowHeightGetter = (index: number) => rowHeightGetterByRecord(rawData[index]);
 
         const totalHeight = sumRowsHeights(rowHeightGetter, rawData, rawData.length - 1);
@@ -317,6 +317,9 @@ export const VirtualTable = <RecordType extends Record<any, any>>(props: Virtual
         }
 
         const totalWidth  = sumColumnWidths(columnWidthGetter, normalizeColumns.length - 1);
+        const scrollBarOffset = totalHeight >= scroll.y ? scrollbarSize : 0;
+        
+        fixStickyHeaderOffset(tableRef.current, totalWidth + scrollBarOffset);
 
         const handleScroll = (props: OnScrollProps) => {
 

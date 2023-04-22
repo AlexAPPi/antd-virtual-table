@@ -38,7 +38,7 @@ export default [
                 extract: true,
                 minify: true,
             }),
-            terser({ sourceMap: true }),
+            terser(),
         ],
         external: ["react", "react-dom", "antd", "styled-components"]
     }
