@@ -129,11 +129,11 @@ export const VirtualTable = <RecordType extends Record<any, any>>(props: Virtual
                     const width = cell.getBoundingClientRect().width;
                     totalWidth += width;
                 }
-
+                
                 // TODO: Возможно пользователь задал свое значение, тут надо подумать...
-                header.style.maxWidth = maxWidth === -1 
-                                    ? `${totalWidth}px`
-                                    : `${maxWidth}px`;
+                if (maxWidth !== -1 ) {
+                    header.style.maxWidth = `${maxWidth}px`;
+                }
 
                 let leftOffset = 0;
                 let rightOffset = 0;
