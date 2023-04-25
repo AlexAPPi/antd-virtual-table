@@ -304,7 +304,6 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
             direction,
             style,
             width,
-
             useIsScrolling,
             itemData,
             rowClassName,
@@ -405,6 +404,7 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
             this._instanceProps
         );
 
+        const scrollBarSize = getScrollbarSize();
         const rows = Object.entries(rowsElementProps).map(([rowIndex, props]) => {
             
             const { top, left } = props.style || {};

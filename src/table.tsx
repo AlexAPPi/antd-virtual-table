@@ -74,6 +74,7 @@ export const VirtualTable = <RecordType extends Record<any, any>>(props: Virtual
         ...tableProps
     } = props;
 
+    const widthRef = useRef<number>();
     const tableRef = useRef<HTMLElement | null>(null);
     const internalGridRef = useRef<Grid<RecordType> | null>(null);
     const [connectObject] = useState<InfoRef>(() => {
@@ -177,39 +178,28 @@ export const VirtualTable = <RecordType extends Record<any, any>>(props: Virtual
         showHeader
     ]);
 
-    const reset = useCallback((columnIndex: number = 0, rowIndex: number = 0) => {
+    const handleChange = useCallback<NonNullable<typeof onChange>>((pagination, filters, sorter, extra) => {
 
         if(scroll.scrollToFirstRowOnChange) {
+
             connectObject.scrollLeft = 0;
+            internalGridRef.current?.resetAfterIndices({
+                columnIndex: 0,
+                rowIndex: 0,
+                shouldForceUpdate: true,
+            });
         }
 
-        internalGridRef.current?.resetAfterIndices({
-            columnIndex: columnIndex,
-            rowIndex: rowIndex,
-            shouldForceUpdate: true,
-        });
-
-        fixStickyHeaderOffset(tableRef.current);
-
-    }, [scroll.scrollToFirstRowOnChange, connectObject, fixStickyHeaderOffset]);
-
-    const handleChange = useCallback<NonNullable<typeof onChange>>((pagination, filters, sorter, extra) => {
+        fixStickyHeaderOffset(tableRef.current, widthRef.current);
 
         if(onChange) {
             onChange(pagination, filters, sorter, extra);
         }
 
-        if(scroll.scrollToFirstRowOnChange) {
-            reset();
-        }
-        else {
-            fixStickyHeaderOffset(tableRef.current);
-        }
-
-    }, [scroll.scrollToFirstRowOnChange,
+    }, [fixStickyHeaderOffset,
+        scroll.scrollToFirstRowOnChange,
+        connectObject,
         onChange,
-        reset,
-        fixStickyHeaderOffset
     ]);
 
     const [normalizeColumns, normalizeIndexes, getColumn, cellRender] = useMemo(() => {
@@ -286,6 +276,35 @@ export const VirtualTable = <RecordType extends Record<any, any>>(props: Virtual
         renderEmpty
     ]);
 
+    const columnWidthGetterWithLastFlag = useCallback((index: number): [number, boolean] => {
+
+        const column = normalizeColumns[index];
+        const { width, overlap } = column;
+
+        if (overlap && overlap > 0) {
+
+            let blockedWidth = width;
+            let lastBlockedIndex = normalizeIndexes[index];
+
+            for(let overlapIndex = 1; overlapIndex < overlap; overlapIndex++) {
+                lastBlockedIndex++;
+                blockedWidth += columns[lastBlockedIndex].width;
+            }
+            
+            return [blockedWidth, lastBlockedIndex === columns.length - 1];
+        }
+
+        return [width, index === normalizeColumns.length - 1];
+
+    }, [normalizeColumns,
+        columns
+    ]);
+
+    const realColumnWidthGetter = useCallback((index: number) => {
+        const [width] = columnWidthGetterWithLastFlag(index);
+        return width;
+    }, [columnWidthGetterWithLastFlag]);
+
     const bodyRender = useCallback((rawData: readonly RecordType[], info: Info) => {
 
         const { ref, scrollbarSize, onScroll: tableOnScroll } = info;
@@ -293,54 +312,35 @@ export const VirtualTable = <RecordType extends Record<any, any>>(props: Virtual
         assignRef(connectObject, ref);
 
         const rowHeightGetter = (index: number) => rowHeightGetterByRecord(rawData[index]);
+        const realTotalWidth = sumColumnWidths(realColumnWidthGetter, normalizeColumns.length - 1);
+        const rowsHeight = sumRowsHeights(rowHeightGetter, rawData, rawData.length - 1);
+        const scrollBarVerticalSize = rowsHeight > scroll.y ? scrollbarSize + 1 : 0;
 
-        const totalHeight = sumRowsHeights(rowHeightGetter, rawData, rawData.length - 1);
-
-        const columnWidthGetter = (index: number): number => {
-
-            const column = normalizeColumns[index];
-            const { width, overlap } = column;
-    
-            if(overlap && overlap > 0) {
-    
-                let blockedWidth = width;
-                let lastBlockedIndex = normalizeIndexes[index];
-
-                for(let overlapIndex = 1; overlapIndex < overlap; overlapIndex++) {
-                    lastBlockedIndex++;
-                    blockedWidth += columns[lastBlockedIndex].width;
-                }
-                
-                return lastBlockedIndex === columns.length - 1
-                ? blockedWidth - scrollbarSize
-                : blockedWidth;
-            }
-    
-            return totalHeight >= scroll.y && index === normalizeColumns.length - 1
-            ? width - scrollbarSize
-            : width;
+        const columnWidthGetter = (index: number) => {
+            const [width, isLast] = columnWidthGetterWithLastFlag(index);
+            return isLast
+                ? width - scrollBarVerticalSize
+                : width;
         }
 
-        const totalWidth  = sumColumnWidths(columnWidthGetter, normalizeColumns.length - 1);
-        const scrollBarOffset = totalHeight >= scroll.y ? scrollbarSize : 0;
-        
-        fixStickyHeaderOffset(tableRef.current, totalWidth + scrollBarOffset);
+        const totalWidth = realTotalWidth - scrollBarVerticalSize;
+        widthRef.current = realTotalWidth;
 
         const handleScroll = (props: OnScrollProps) => {
+
+            if(onScroll) {
+                onScroll(props);
+            }
 
             if(tableOnScroll) {
                 tableOnScroll({
                     scrollLeft: props.scrollLeft
                 });
             }
-
-            if(onScroll) {
-                onScroll(props);
-            }
         }
 
         const hasData = rawData.length > 0;
-        
+
         return (
             <div className="virtual-grid-wrap">
                 {!hasData && emptyNode}
@@ -351,7 +351,7 @@ export const VirtualTable = <RecordType extends Record<any, any>>(props: Virtual
                     className="virtual-grid"
                     rerenderFixedColumnOnHorizontalScroll={rerenderFixedColumnOnHorizontalScroll}
                     estimatedColumnWidth={totalWidth / normalizeColumns.length}
-                    estimatedRowHeight={totalHeight / rawData.length}
+                    estimatedRowHeight={rowsHeight / rawData.length}
                     width={scroll.x}
                     height={scroll.y}
                     columnCount={normalizeColumns.length}
@@ -367,8 +367,9 @@ export const VirtualTable = <RecordType extends Record<any, any>>(props: Virtual
             </div>
         );
 
-    }, [fixStickyHeaderOffset,
-        rowHeightGetterByRecord,
+    }, [rowHeightGetterByRecord,
+        realColumnWidthGetter,
+        columnWidthGetterWithLastFlag,
         rerenderFixedColumnOnHorizontalScroll,
         normalizeIndexes,
         normalizeColumns,
@@ -382,22 +383,19 @@ export const VirtualTable = <RecordType extends Record<any, any>>(props: Virtual
     ]);
 
     useEffect(() => {
-        fixStickyHeaderOffset(tableRef.current)
-    }, [fixStickyHeaderOffset,
-        scroll.x,
-        scroll.y,
-        scroll.scrollToFirstRowOnChange,
-        columns,
-        showHeader,
-        components?.header
-    ]);
+        fixStickyHeaderOffset(tableRef.current, widthRef.current);
+    }, [columns]);
+    
+    useEffect(() => {
+        internalGridRef.current
+        ?.resetAfterColumnIndex(normalizeColumns.length - 1, true);
+    }, [scroll.y]);
 
     return (
         <Table<RecordType>
             {...tableProps}
             ref={(el) => {
                 assignRef(el, ref, tableRef);
-                fixStickyHeaderOffset(el);
             }}
             locale={locale}
             showHeader={showHeader}

@@ -8,6 +8,8 @@ import ru from 'antd/locale/ru_RU';
 import './style.css';
 import { Grid } from './grid';
 
+import './index.css';
+
 type RecordType = {value: string | number};
 
 const render: ColumnType<RecordType>['render']  = (value, itemData, index, isScrolling) => {
@@ -43,7 +45,7 @@ for(var i = 3; i < 101; i++) {
 
 const dataSource: RecordType[] = []
 
-for(var i = 0; i < 100; i++) {
+for(var i = 0; i < 5; i++) {
     dataSource.push({value: i});
 }
 
@@ -94,31 +96,24 @@ function Sample() {
     }, [setWindowSize]);
 
     return (
-        <div
-            style={{
-                position: 'relative',
-                width: windowSize[0] - 100
-            }}
+        <ConfigProvider
+            //renderEmpty={() => '5555'}
+            locale={ru}
         >
-            <ConfigProvider
-                //renderEmpty={() => '5555'}
-                locale={ru}
-            >
-                <VirtualTable<RecordType>
-                    gridRef={gridRef}
-                    scroll={{x: windowSize[0] - 100, y: windowSize[1] - 500}}
-                    //locale={{
-                    //    emptyText: "321"
-                    //}}
-                    rowHeight={50}
-                    columns={columns}
-                    dataSource={dataSource}
-                    //dataSource={[]}
-                    pagination={false}
-                    bordered
-                />
-            </ConfigProvider>
-        </div>
+            <VirtualTable<RecordType>
+                gridRef={gridRef}
+                scroll={{x: windowSize[0], y: windowSize[1] - 100}}
+                //locale={{
+                //    emptyText: "321"
+                //}}
+                rowHeight={50}
+                columns={columns}
+                dataSource={dataSource}
+                //dataSource={[]}
+                pagination={false}
+                bordered
+            />
+        </ConfigProvider>
     )
 }
 

@@ -51,7 +51,7 @@ export function sumRowsHeights<T>(rowHeightGetter: ValueGetter<number>, rows: Re
         return sum;
     }
     
-    return index * rowHeightGetter;
+    return rowHeightGetter + (index * rowHeightGetter);
 }
 
 export function assignRef<T>(refValue: T, ...refs: (React.Ref<T> | undefined)[]) {

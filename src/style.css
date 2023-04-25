@@ -79,3 +79,8 @@
 .ignore-mouse {
     pointer-events: none;
 }
+
+.virtual-table .ant-table-container:before,
+.virtual-table .ant-table-container:after {
+  display: none;
+}
