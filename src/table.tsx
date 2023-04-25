@@ -7,6 +7,7 @@ import { GridChildComponentProps, MemonableVirtualTableCell } from './cell';
 import { TableComponents } from 'rc-table/lib/interface';
 
 import './style.css';
+import { flushSync } from 'react-dom';
 
 export interface InfoRef {
     scrollLeft: number;
@@ -122,17 +123,21 @@ export const VirtualTable = <RecordType extends Record<any, any>>(props: Virtual
 
                 const headerCells = header.querySelectorAll<HTMLTableCellElement>(".ant-table-thead .ant-table-cell");
 
+                /*
                 let totalWidth = 0;
-
                 for(let headerIndex = 0; headerIndex < headerCells.length; headerIndex++) {
                     const cell = headerCells[headerIndex];
                     const width = cell.getBoundingClientRect().width;
                     totalWidth += width;
                 }
+                */
                 
                 // TODO: Возможно пользователь задал свое значение, тут надо подумать...
-                if (maxWidth !== -1 ) {
+                // Если размер блока грида, меньше длины 
+                if (maxWidth !== -1) {
                     header.style.maxWidth = `${maxWidth}px`;
+                } else {
+                    header.style.removeProperty("maxWidth");
                 }
 
                 let leftOffset = 0;
@@ -174,8 +179,6 @@ export const VirtualTable = <RecordType extends Record<any, any>>(props: Virtual
 
     const reset = useCallback((columnIndex: number = 0, rowIndex: number = 0) => {
 
-        fixStickyHeaderOffset(tableRef.current);
-
         if(scroll.scrollToFirstRowOnChange) {
             connectObject.scrollLeft = 0;
         }
@@ -186,19 +189,21 @@ export const VirtualTable = <RecordType extends Record<any, any>>(props: Virtual
             shouldForceUpdate: true,
         });
 
+        fixStickyHeaderOffset(tableRef.current);
+
     }, [scroll.scrollToFirstRowOnChange, connectObject, fixStickyHeaderOffset]);
 
     const handleChange = useCallback<NonNullable<typeof onChange>>((pagination, filters, sorter, extra) => {
-
-        fixStickyHeaderOffset(tableRef.current);
 
         if(onChange) {
             onChange(pagination, filters, sorter, extra);
         }
 
         if(scroll.scrollToFirstRowOnChange) {
-
             reset();
+        }
+        else {
+            fixStickyHeaderOffset(tableRef.current);
         }
 
     }, [scroll.scrollToFirstRowOnChange,
@@ -300,7 +305,7 @@ export const VirtualTable = <RecordType extends Record<any, any>>(props: Virtual
     
                 let blockedWidth = width;
                 let lastBlockedIndex = normalizeIndexes[index];
-    
+
                 for(let overlapIndex = 1; overlapIndex < overlap; overlapIndex++) {
                     lastBlockedIndex++;
                     blockedWidth += columns[lastBlockedIndex].width;
