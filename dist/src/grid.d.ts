@@ -62,7 +62,7 @@ export interface IGridProps<RecordType extends Record<any, any> = any> extends V
     itemData: readonly RecordType[];
     columnGetter: columnGetter<RecordType>;
 }
-import { VariableSizeGrid } from './react-window-grid.js';
+import { VariableSizeGrid } from './react-window-grid-d';
 export declare class Grid<RecordType extends Record<any, any> = any> extends VariableSizeGrid<RecordType> {
     private _leftFixedColumnsWidth;
     private _rightFixedColumnsWidth;

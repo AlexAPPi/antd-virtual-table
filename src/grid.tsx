@@ -86,9 +86,9 @@ export interface IGridProps<RecordType extends Record<any, any> = any> extends V
 }
 
 /*#if _BUILDLIB*/
-//import { VariableSizeGrid } from './react-window-grid-d';
+import { VariableSizeGrid } from './react-window-grid-d';
 //#else*/
-import { VariableSizeGrid } from './react-window-grid.js';
+//import { VariableSizeGrid } from './react-window-grid.js';
 //#endif
 
 export class Grid<RecordType extends Record<any, any> = any> extends VariableSizeGrid<RecordType> {
@@ -404,7 +404,6 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
             this._instanceProps
         );
 
-        const scrollBarSize = getScrollbarSize();
         const rows = Object.entries(rowsElementProps).map(([rowIndex, props]) => {
             
             const { top, left } = props.style || {};
