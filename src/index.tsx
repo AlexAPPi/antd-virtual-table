@@ -51,14 +51,14 @@ defaultColumns.push({
     title: 101,
     key: 101,
     width: 200,
-    fixed: 'right',
+    //fixed: 'right',
     render
 },
 {
     title: 102,
     key: 102,
     width: 220,
-    fixed: 'right',
+    //fixed: 'right',
     render
 });
 
