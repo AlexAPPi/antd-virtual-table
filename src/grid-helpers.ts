@@ -90,7 +90,7 @@ export const getEstimatedTotalWidth = <TRecord extends Record<any, any> = any,>(
     }: InstanceProps
 ) => {
     let totalSizeOfMeasuredRows = 0;
-  
+
     // Edge case check for when the number of items decreases while a scroll is in progress.
     // https://github.com/bvaughn/react-window/pull/138
     if (lastMeasuredColumnIndex >= columnCount) {
@@ -101,12 +101,14 @@ export const getEstimatedTotalWidth = <TRecord extends Record<any, any> = any,>(
         const itemMetadata = columnMetadataMap[lastMeasuredColumnIndex];
         totalSizeOfMeasuredRows = itemMetadata.offset + itemMetadata.size;
     }
-  
+
     const numUnmeasuredItems = columnCount - lastMeasuredColumnIndex - 1;
     const totalSizeOfUnmeasuredItems = numUnmeasuredItems * estimatedColumnWidth;
 
+    console.log(numUnmeasuredItems * estimatedColumnWidth, columnCount * estimatedColumnWidth);
+
     return totalSizeOfMeasuredRows + totalSizeOfUnmeasuredItems;
-};
+}
 
 export const getOffsetForIndexAndAlignment = <TRecord extends Record<any, any> = any,>(
     itemType: ItemType,

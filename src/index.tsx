@@ -46,7 +46,7 @@ for(var i = 3; i < 101; i++) {
 const dataSource: RecordType[] = []
 
 for(var i = 0; i < 5; i++) {
-    dataSource.push({value: i});
+    //dataSource.push({value: i});
 }
 
 defaultColumns.push({

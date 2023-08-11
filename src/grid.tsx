@@ -86,9 +86,9 @@ export interface IGridProps<RecordType extends Record<any, any> = any> extends V
 }
 
 /*#if _BUILDLIB*/
-import { VariableSizeGrid } from './react-window-grid-d';
+//import { VariableSizeGrid } from './react-window-grid-d';
 //#else*/
-//import { VariableSizeGrid } from './react-window-grid.js';
+import { VariableSizeGrid } from './react-window-grid.js';
 //#endif
 
 export class Grid<RecordType extends Record<any, any> = any> extends VariableSizeGrid<RecordType> {
@@ -399,6 +399,7 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
             this.props,
             this._instanceProps
         );
+
         const estimatedTotalWidth = getEstimatedTotalWidth(
             this.props,
             this._instanceProps
@@ -451,13 +452,13 @@ export class Grid<RecordType extends Record<any, any> = any> extends VariableSiz
                 onScroll: this._onScroll,
                 ref: this._outerRefSetter,
                 style: {
-                    position: 'relative',
                     height,
                     width,
+                    direction,
+                    position: 'relative',
                     overflow: 'auto',
                     WebkitOverflowScrolling: 'touch',
                     willChange: 'transform',
-                    direction,
                     ...style,
                 },
             },

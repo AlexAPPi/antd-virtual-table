@@ -1,4 +1,4 @@
-import React, { Ref, useEffect } from 'react';
+import React, { Ref, useEffect, useLayoutEffect } from 'react';
 import { ConfigProvider, Empty, Table, TableProps, TableColumnType as AntdTableColumnType } from 'antd';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { Grid, OnScrollCallback, OnScrollProps } from './grid';
@@ -7,7 +7,6 @@ import { GridChildComponentProps, MemonableVirtualTableCell } from './cell';
 import { TableComponents } from 'rc-table/lib/interface';
 
 import './style.css';
-import { flushSync } from 'react-dom';
 
 export interface InfoRef {
     scrollLeft: number;
@@ -74,8 +73,9 @@ export const VirtualTable = <RecordType extends Record<any, any>>(props: Virtual
         ...tableProps
     } = props;
 
+    const didMountRef = useRef(false);
     const widthRef = useRef<number>();
-    const tableRef = useRef<HTMLElement | null>(null);
+    const tableRef = useRef<HTMLDivElement | null>(null);
     const internalGridRef = useRef<Grid<RecordType> | null>(null);
     const [connectObject] = useState<InfoRef>(() => {
 
@@ -340,6 +340,8 @@ export const VirtualTable = <RecordType extends Record<any, any>>(props: Virtual
         }
 
         const hasData = rawData.length > 0;
+        const estimatedColumnWidth = totalWidth / normalizeColumns.length;
+        const estimatedRowHeight = rowsHeight / rawData.length;
 
         return (
             <div className="virtual-grid-wrap">
@@ -350,8 +352,8 @@ export const VirtualTable = <RecordType extends Record<any, any>>(props: Virtual
                     outerRef={refSetter(outerGridRef)}
                     className="virtual-grid"
                     rerenderFixedColumnOnHorizontalScroll={rerenderFixedColumnOnHorizontalScroll}
-                    estimatedColumnWidth={totalWidth / normalizeColumns.length}
-                    estimatedRowHeight={rowsHeight / rawData.length}
+                    estimatedColumnWidth={estimatedColumnWidth}
+                    estimatedRowHeight={estimatedRowHeight}
                     width={scroll.x}
                     height={scroll.y}
                     columnCount={normalizeColumns.length}
@@ -383,20 +385,27 @@ export const VirtualTable = <RecordType extends Record<any, any>>(props: Virtual
     ]);
 
     useEffect(() => {
+
+        if (didMountRef.current
+        &&  internalGridRef.current) {
+            internalGridRef.current.resetAfterColumnIndex(normalizeColumns.length - 1, true);
+        }
+
+    }, [scroll.y]);
+
+    useEffect(() => {
         fixStickyHeaderOffset(tableRef.current, widthRef.current);
     }, [columns]);
-    
+
     useEffect(() => {
-        internalGridRef.current
-        ?.resetAfterColumnIndex(normalizeColumns.length - 1, true);
-    }, [scroll.y]);
+                       didMountRef.current = true;
+        return () => { didMountRef.current = false; }
+    }, []);
 
     return (
         <Table<RecordType>
             {...tableProps}
-            ref={(el) => {
-                assignRef(el, ref, tableRef);
-            }}
+            ref={refSetter(ref, tableRef)}
             locale={locale}
             showHeader={showHeader}
             className={classNames("virtual-table", className)}
