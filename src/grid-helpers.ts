@@ -105,7 +105,7 @@ export const getEstimatedTotalWidth = <TRecord extends Record<any, any> = any,>(
     const numUnmeasuredItems = columnCount - lastMeasuredColumnIndex - 1;
     const totalSizeOfUnmeasuredItems = numUnmeasuredItems * estimatedColumnWidth;
 
-    console.log(numUnmeasuredItems * estimatedColumnWidth, columnCount * estimatedColumnWidth);
+    //console.log(numUnmeasuredItems * estimatedColumnWidth, columnCount * estimatedColumnWidth);
 
     return totalSizeOfMeasuredRows + totalSizeOfUnmeasuredItems;
 }
